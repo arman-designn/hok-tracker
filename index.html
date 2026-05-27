@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HOK Tracker">
+<title>HOK Matchup Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #f0a500;
+  --gold-dim: rgba(240,165,0,0.12);
+  --gold-glow: rgba(240,165,0,0.25);
+  --bg0: #080c12;
+  --bg1: #0d1117;
+  --bg2: #161b22;
+  --bg3: #21262d;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.14);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --green: #3fb950;
+  --red: #f85149;
+  --green-dim: rgba(63,185,80,0.12);
+  --red-dim: rgba(248,81,73,0.12);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg0);
+  color: var(--text-primary);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+}
+
+/* ── App shell ── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--bg1);
+  border-bottom: 0.5px solid var(--border);
+  padding: calc(var(--safe-top) + 12px) 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.header-icon {
+  width: 36px; height: 36px;
+  background: var(--gold);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.header-icon svg { width: 20px; height: 20px; fill: var(--bg0); }
+.header-text { flex: 1; }
+.header-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 19px; font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+}
+.header-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.sync-btn {
+  background: none;
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  padding: 6px 11px;
+  font-size: 12px;
+  font-family: 'Exo 2', sans-serif;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.sync-btn:active { border-color: var(--gold); color: var(--gold); }
+.sync-btn svg { width: 13px; height: 13px; }
+
+/* ── Nav ── */
+.nav {
+  display: flex;
+  background: var(--bg1);
+  border-bottom: 0.5px solid var(--border);
+  flex-shrink: 0;
+}
+.nav-btn {
+  flex: 1; padding: 10px 4px 9px;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  color: var(--text-muted); font-size: 10px;
+  font-family: 'Exo 2', sans-serif; font-weight: 500;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s;
+}
+.nav-btn svg { width: 20px; height: 20px; }
+.nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ── Screens ── */
+.screens { flex: 1; overflow: hidden; position: relative; }
+.screen {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 18px 16px calc(var(--safe-bottom) + 18px);
+  opacity: 0; pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.screen.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+/* ── Form elements ── */
+.field { margin-bottom: 14px; }
+.label {
+  display: block; font-size: 10px; font-weight: 600;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 6px;
+}
+select, input[type=number], input[type=text] {
+  width: 100%; background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: 8px; color: var(--text-primary);
+  font-family: 'Exo 2', sans-serif; font-size: 14px;
+  padding: 10px 12px; -webkit-appearance: none; appearance: none;
+  transition: border-color 0.15s;
+}
+select:focus, input:focus { outline: none; border-color: var(--gold); }
+select option { background: var(--bg2); }
+
+/* ── Hero matchup row ── */
+.vs-row {
+  display: grid; grid-template-columns: 1fr 38px 1fr;
+  align-items: end; gap: 8px; margin-bottom: 16px;
+}
+.vs-pill {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--bg3); border: 0.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Rajdhani', sans-serif; font-size: 11px;
+  font-weight: 700; color: var(--gold); margin-bottom: 0;
+}
+
+/* ── Result cards ── */
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.result-card {
+  padding: 16px 12px; border-radius: 10px;
+  border: 0.5px solid var(--border);
+  background: var(--bg2); cursor: pointer;
+  text-align: center; transition: all 0.15s;
+  user-select: none;
+}
+.result-card svg { width: 26px; height: 26px; display: block; margin: 0 auto 6px; }
+.result-card span { font-size: 12px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; }
+.result-card.win { color: var(--green); }
+.result-card.win.active { background: var(--green-dim); border-color: var(--green); }
+.result-card.loss { color: var(--red); }
+.result-card.loss.active { background: var(--red-dim); border-color: var(--red); }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 0.5px solid var(--border); margin: 16px 0; }
+
+/* ── Two-col grid ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── Hint ── */
+.hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 14px; }
+
+/* ── Submit button ── */
+.submit-btn {
+  width: 100%; padding: 14px;
+  background: var(--gold); border: none; border-radius: 10px;
+  color: var(--bg0); font-family: 'Rajdhani', sans-serif;
+  font-size: 16px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.submit-btn:active { transform: scale(0.98); opacity: 0.9; }
+.submit-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+/* ── Stats ── */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--bg2); border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 14px;
+}
+.stat-val { font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 700; color: var(--text-primary); }
+.stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.section-head {
+  font-size: 10px; font-weight: 600; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 10px; margin-top: 4px;
+}
+
+.hero-list { display: flex; flex-direction: column; gap: 6px; }
+.hero-item {
+  background: var(--bg2); border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+}
+.hero-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.hero-name { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.hero-wr { font-size: 13px; font-weight: 600; }
+.bar-bg { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.bar-fill { height: 4px; border-radius: 2px; transition: width 0.4s ease; }
+.hero-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── Hero manager ── */
+.add-row { display: flex; gap: 8px; margin-bottom: 18px; }
+.add-row input { flex: 1; }
+.add-btn {
+  background: var(--gold); border: none; border-radius: 8px;
+  color: var(--bg0); font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 14px; padding: 10px 16px;
+  cursor: pointer; white-space: nowrap; letter-spacing: 0.5px;
+  transition: opacity 0.15s;
+}
+.add-btn:active { opacity: 0.8; }
+
+.roster-item {
+  background: var(--bg2); border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 11px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.roster-check { width: 18px; height: 18px; border-radius: 50%; background: var(--green-dim); border: 0.5px solid var(--green); display: flex; align-items: center; justify-content: center; }
+.roster-check svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+
+/* ── Loading / empty ── */
+.loading-msg {
+  text-align: center; color: var(--text-muted);
+  font-size: 13px; padding: 32px 0;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.spinner {
+  width: 16px; height: 16px; border: 2px solid var(--bg3);
+  border-top-color: var(--gold); border-radius: 50%;
+  animation: spin 0.7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: calc(var(--safe-bottom) + 12px);
+  left: 50%; transform: translateX(-50%) translateY(8px);
+  background: var(--bg2); border: 0.5px solid var(--border);
+  color: var(--text-primary); padding: 10px 18px;
+  border-radius: 20px; font-size: 13px; white-space: nowrap;
+  opacity: 0; transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none; z-index: 999;
+  max-width: calc(100% - 32px);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.success { border-color: var(--green); color: var(--green); }
+#toast.error { border-color: var(--red); color: var(--red); }
+
+/* scrollbar */
+.screen::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 2.5L21 9l-9.5 9.5-2-2L3 23l-2-2 6.5-6.5-2-2L15 3l-.5-.5z"/></svg>
+    </div>
+    <div class="header-text">
+      <div class="header-title">HOK TRACKER</div>
+      <div class="header-sub">Honor of Kings · Matchup Tracker</div>
+    </div>
+    <button class="sync-btn" onclick="syncAll()" aria-label="Sync">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      Sync
+    </button>
+  </div>
+
+  <!-- Nav -->
+  <nav class="nav" role="tablist">
+    <button class="nav-btn active" onclick="showScreen('log',this)" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Log
+    </button>
+    <button class="nav-btn" onclick="showScreen('stats',this)" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Stats
+    </button>
+    <button class="nav-btn" onclick="showScreen('heroes',this)" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      Heroes
+    </button>
+  </nav>
+
+  <!-- Screens -->
+  <div class="screens">
+
+    <!-- LOG SCREEN -->
+    <div id="screen-log" class="screen active" role="tabpanel">
+      <div id="logLoading" class="loading-msg"><div class="spinner"></div>Loading heroes…</div>
+      <div id="logForm" style="display:none">
+
+        <div class="vs-row">
+          <div class="field">
+            <label class="label">Your hero</label>
+            <select id="myHero"><option value="">— Select —</option></select>
+          </div>
+          <div class="vs-pill">VS</div>
+          <div class="field">
+            <label class="label">Enemy hero</label>
+            <select id="enemyHero"><option value="">— Select —</option></select>
+          </div>
+        </div>
+
+        <label class="label">Result</label>
+        <div class="result-grid">
+          <div class="result-card win" id="btnWin" onclick="setResult('win')" role="button" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <span>Win</span>
+          </div>
+          <div class="result-card loss" id="btnLoss" onclick="setResult('loss')" role="button" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Loss</span>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <label class="label" style="margin-bottom:8px">Or override totals manually</label>
+        <div class="two-col" style="margin-bottom:8px">
+          <div class="field">
+            <label class="label">Total wins</label>
+            <input type="number" id="totalWins" min="0" placeholder="—">
+          </div>
+          <div class="field">
+            <label class="label">Total games</label>
+            <input type="number" id="totalGames" min="0" placeholder="—">
+          </div>
+        </div>
+        <p class="hint">Leave blank → auto +1 from current data</p>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitMatch()">Record Match</button>
+      </div>
+    </div>
+
+    <!-- STATS SCREEN -->
+    <div id="screen-stats" class="screen" role="tabpanel">
+      <div id="statsLoading" class="loading-msg"><div class="spinner"></div>Loading stats…</div>
+      <div id="statsContent" style="display:none">
+        <div class="stat-grid" id="summaryCards"></div>
+        <div class="section-head">Win rate by hero</div>
+        <div class="hero-list" id="statsList"></div>
+      </div>
+    </div>
+
+    <!-- HEROES SCREEN -->
+    <div id="screen-heroes" class="screen" role="tabpanel">
+      <div class="section-head">Add new hero</div>
+      <div class="add-row">
+        <input type="text" id="newHeroName" placeholder="e.g. Sun Ce" autocomplete="off">
+        <button class="add-btn" onclick="addHero()">Add</button>
+      </div>
+      <div class="section-head">Current roster</div>
+      <div id="heroRoster"><div class="loading-msg"><div class="spinner"></div>Loading…</div></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────
+const SHEET_ID  = '1bPpm8_QH20WyIFTLyKIrCV01IYulI63-_f5O9Byvjf4';
+const API_KEY   = 'AIzaSyAm5ESsYBbZSAaKkU7c8ZPNLndL6KIKu8U';
+const BASE      = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
+const HDR_ROW   = 4;
+const DATA_START= 5;
+const COL_START = 2;
+
+// ── State ────────────────────────────────────────────────────────
+let heroes = [];
+let selectedResult = null;
+let statsLoaded = false;
+
+// ── Utilities ────────────────────────────────────────────────────
+function colLetter(n) {
+  let s = '';
+  while (n > 0) { const m = (n-1)%26; s = String.fromCharCode(65+m)+s; n = Math.floor((n-1)/26); }
+  return s;
+}
+
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 2800);
+}
+
+// ── API helpers ──────────────────────────────────────────────────
+async function apiGet(ranges) {
+  const q = ranges.map(r => 'ranges='+encodeURIComponent(r)).join('&');
+  const res = await fetch(`${BASE}/values:batchGet?${q}&key=${API_KEY}`);
+  if (!res.ok) throw new Error('API error ' + res.status);
+  const d = await res.json();
+  return (d.valueRanges || []).map(vr => vr.values || []);
+}
+
+async function apiPut(range, values) {
+  const res = await fetch(
+    `${BASE}/values/${encodeURIComponent(range)}?valueInputOption=RAW&key=${API_KEY}`,
+    { method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ range, majorDimension:'ROWS', values }) }
+  );
+  if (!res.ok) throw new Error('Write error ' + res.status);
+}
+
+// ── Navigation ───────────────────────────────────────────────────
+function showScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  document.getElementById('screen-'+name).classList.add('active');
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected','true');
+  if (name === 'stats' && !statsLoaded) loadStats();
+}
+
+// ── Load heroes ──────────────────────────────────────────────────
+async function loadHeroes() {
+  try {
+    const [hdrVals, rowVals] = await apiGet([
+      `Wins!${colLetter(COL_START)}${HDR_ROW}:ZZ${HDR_ROW}`,
+      `Wins!A${DATA_START}:A300`
+    ]);
+    const colH = (hdrVals[0] || []).filter(h => h && h.trim());
+    const rowH = (rowVals || []).map(r => r[0]).filter(h => h && h.trim());
+    heroes = [...new Set([...colH, ...rowH])].sort();
+    populateSelects();
+    document.getElementById('logLoading').style.display = 'none';
+    document.getElementById('logForm').style.display = 'block';
+    renderRoster();
+  } catch(e) {
+    document.getElementById('logLoading').innerHTML =
+      '<span style="color:var(--red)">Failed to load. Check your API key &amp; Sheet sharing.</span>';
+  }
+}
+
+function populateSelects() {
+  ['myHero','enemyHero'].forEach(id => {
+    const s = document.getElementById(id);
+    const cur = s.value;
+    s.innerHTML = '<option value="">— Select —</option>' +
+      heroes.map(h => `<option value="${h}">${h}</option>`).join('');
+    if (cur) s.value = cur;
+  });
+}
+
+// ── Set result ───────────────────────────────────────────────────
+function setResult(r) {
+  selectedResult = (selectedResult === r) ? null : r;
+  document.getElementById('btnWin').classList.toggle('active', selectedResult === 'win');
+  document.getElementById('btnLoss').classList.toggle('active', selectedResult === 'loss');
+}
+
+// ── Submit match ─────────────────────────────────────────────────
+async function submitMatch() {
+  const my = document.getElementById('myHero').value;
+  const en = document.getElementById('enemyHero').value;
+  const tw = document.getElementById('totalWins').value;
+  const tg = document.getElementById('totalGames').value;
+
+  if (!my || !en)       { showToast('Select both heroes', 'error'); return; }
+  if (my === en)        { showToast('Pick different heroes!', 'error'); return; }
+  if (!selectedResult && tw === '' && tg === '') {
+    showToast('Pick Win/Loss or set totals', 'error'); return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    const [wSheet, gSheet] = await apiGet([`Wins!A${HDR_ROW}:ZZ300`, `Games!A${HDR_ROW}:ZZ300`]);
+    const hdr = wSheet[0] || [];
+
+    const myRowIdx = wSheet.findIndex((r, i) => i > 0 && r[0] === my);
+    const enColIdx = hdr.findIndex((c, i) => i >= COL_START-1 && c === en);
+
+    if (myRowIdx === -1 || enColIdx === -1) {
+      showToast('Hero not found — try Sync', 'error');
+      btn.disabled = false; btn.textContent = 'Record Match'; return;
+    }
+
+    const sheetRow = HDR_ROW + myRowIdx;
+    const sheetCol = enColIdx + 1;
+    const cell = `${colLetter(sheetCol)}${sheetRow}`;
+
+    const curW = parseInt((wSheet[myRowIdx] || [])[enColIdx]) || 0;
+    const curG = parseInt((gSheet[myRowIdx] || [])[enColIdx]) || 0;
+
+    const newW = tw !== '' ? parseInt(tw) : curW + (selectedResult === 'win' ? 1 : 0);
+    const newG = tg !== '' ? parseInt(tg) : curG + 1;
+
+    await apiPut(`Wins!${cell}`,  [[newW]]);
+    await apiPut(`Games!${cell}`, [[newG]]);
+
+    showToast(`✓ ${my} vs ${en} — ${selectedResult ? selectedResult.toUpperCase() : 'updated'}`, 'success');
+    selectedResult = null;
+    document.getElementById('btnWin').classList.remove('active');
+    document.getElementById('btnLoss').classList.remove('active');
+    document.getElementById('totalWins').value = '';
+    document.getElementById('totalGames').value = '';
+    statsLoaded = false;
+  } catch(e) {
+    showToast('Save failed. Check connection.', 'error');
+  }
+
+  btn.disabled = false; btn.textContent = 'Record Match';
+}
+
+// ── Stats ────────────────────────────────────────────────────────
+async function loadStats() {
+  document.getElementById('statsLoading').style.display = 'flex';
+  document.getElementById('statsContent').style.display = 'none';
+
+  try {
+    const [wSheet, gSheet] = await apiGet([`Wins!A${HDR_ROW}:ZZ300`, `Games!A${HDR_ROW}:ZZ300`]);
+    const dataRows = wSheet.slice(1).filter(r => r[0] && r[0].trim());
+    let totalW = 0, totalG = 0;
+    const heroStats = [];
+
+    dataRows.forEach((wRow, i) => {
+      const gRow = gSheet[i+1] || [];
+      const hero = wRow[0];
+      let hw = 0, hg = 0;
+      for (let c = COL_START-1; c < Math.max(wRow.length, gRow.length); c++) {
+        hw += parseInt(wRow[c]) || 0;
+        hg += parseInt(gRow[c]) || 0;
+      }
+      totalW += hw; totalG += hg;
+      if (hg > 0) heroStats.push({ hero, w: hw, g: hg, wr: hw/hg });
+    });
+
+    heroStats.sort((a,b) => b.wr - a.wr);
+
+    const overallWR = totalG > 0 ? (totalW/totalG*100).toFixed(1)+'%' : '—';
+    document.getElementById('summaryCards').innerHTML = `
+      <div class="stat-card"><div class="stat-val">${overallWR}</div><div class="stat-lbl">Overall win rate</div></div>
+      <div class="stat-card"><div class="stat-val">${totalG}</div><div class="stat-lbl">Total games</div></div>
+      <div class="stat-card"><div class="stat-val">${totalW}</div><div class="stat-lbl">Wins</div></div>
+      <div class="stat-card"><div class="stat-val">${totalG - totalW}</div><div class="stat-lbl">Losses</div></div>
+    `;
+
+    document.getElementById('statsList').innerHTML = heroStats.length ? heroStats.map(s => {
+      const pct = (s.wr * 100).toFixed(1);
+      const col = s.wr >= 0.6 ? 'var(--green)' : s.wr >= 0.4 ? 'var(--gold)' : 'var(--red)';
+      const bar = Math.round(s.wr * 100);
+      return `<div class="hero-item">
+        <div class="hero-item-top">
+          <span class="hero-name">${s.hero}</span>
+          <span class="hero-wr" style="color:${col}">${pct}%</span>
+        </div>
+        <div class="bar-bg"><div class="bar-fill" style="width:${bar}%;background:${col}"></div></div>
+        <div class="hero-sub">${s.w}W / ${s.g - s.w}L · ${s.g} games</div>
+      </div>`;
+    }).join('') : '<div class="loading-msg">No match data recorded yet.</div>';
+
+    document.getElementById('statsLoading').style.display = 'none';
+    document.getElementById('statsContent').style.display = 'block';
+    statsLoaded = true;
+  } catch(e) {
+    document.getElementById('statsLoading').innerHTML =
+      '<span style="color:var(--red)">Failed to load stats.</span>';
+  }
+}
+
+// ── Heroes screen ────────────────────────────────────────────────
+function renderRoster() {
+  const el = document.getElementById('heroRoster');
+  if (!heroes.length) {
+    el.innerHTML = '<div class="loading-msg">No heroes found.</div>'; return;
+  }
+  el.innerHTML = heroes.map(h => `
+    <div class="roster-item">
+      <span class="hero-name">${h}</span>
+      <div class="roster-check">
+        <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+      </div>
+    </div>`).join('');
+}
+
+async function addHero() {
+  const name = document.getElementById('newHeroName').value.trim();
+  if (!name) { showToast('Enter a hero name', 'error'); return; }
+  if (heroes.map(h=>h.toLowerCase()).includes(name.toLowerCase())) {
+    showToast(`${name} already exists`, 'error'); return;
+  }
+
+  const btn = document.querySelector('.add-btn');
+  btn.disabled = true; btn.textContent = '…';
+
+  try {
+    const [wHdr, wRows] = await apiGet([
+      `Wins!${colLetter(COL_START)}${HDR_ROW}:ZZ${HDR_ROW}`,
+      `Wins!A${DATA_START}:A300`
+    ]);
+    const existingCols = (wHdr[0] || []).filter(h => h && h.trim()).length;
+    const existingRows = (wRows || []).filter(r => r[0] && r[0].trim()).length;
+    const nextCol = COL_START + existingCols;
+    const nextRow = DATA_START + existingRows;
+
+    await apiPut(`Wins!${colLetter(nextCol)}${HDR_ROW}`,  [[name]]);
+    await apiPut(`Wins!A${nextRow}`,                       [[name]]);
+    await apiPut(`Games!${colLetter(nextCol)}${HDR_ROW}`, [[name]]);
+    await apiPut(`Games!A${nextRow}`,                      [[name]]);
+
+    heroes = [...new Set([...heroes, name])].sort();
+    populateSelects();
+    renderRoster();
+    document.getElementById('newHeroName').value = '';
+    showToast(`${name} added to roster`, 'success');
+    statsLoaded = false;
+  } catch(e) {
+    showToast('Failed to add hero', 'error');
+  }
+
+  btn.disabled = false; btn.textContent = 'Add';
+}
+
+// ── Sync ─────────────────────────────────────────────────────────
+async function syncAll() {
+  showToast('Syncing…');
+  statsLoaded = false;
+  await loadHeroes();
+  if (document.getElementById('screen-stats').classList.contains('active')) await loadStats();
+  showToast('Synced!', 'success');
+}
+
+// ── Keyboard shortcuts on result cards ───────────────────────────
+document.getElementById('btnWin').addEventListener('keydown', e => { if(e.key===' '||e.key==='Enter') setResult('win'); });
+document.getElementById('btnLoss').addEventListener('keydown', e => { if(e.key===' '||e.key==='Enter') setResult('loss'); });
+document.getElementById('newHeroName').addEventListener('keydown', e => { if(e.key==='Enter') addHero(); });
+
+// ── Boot ─────────────────────────────────────────────────────────
+loadHeroes();
+</script>
+</body>
+</html>
