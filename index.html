@@ -1,684 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0d1117">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="HOK Tracker">
-<title>HOK Matchup Tracker</title>
-<link rel="manifest" href="manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --gold: #f0a500; --gold-dim: rgba(240,165,0,0.12); --gold-glow: rgba(240,165,0,0.25);
-  --bg0: #080c12; --bg1: #0d1117; --bg2: #161b22; --bg3: #21262d;
-  --border: rgba(255,255,255,0.07); --border-hi: rgba(255,255,255,0.14);
-  --text: #e6edf3; --text2: #8b949e; --text3: #484f58;
-  --green: #3fb950; --red: #f85149;
-  --green-dim: rgba(63,185,80,0.12); --red-dim: rgba(248,81,73,0.12);
-  --safe-top: env(safe-area-inset-top,0px); --safe-bottom: env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--text);font-family:'Exo 2',sans-serif;font-size:14px}
-#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;overflow:hidden}
-
-/* Header */
-.header{background:var(--bg1);border-bottom:0.5px solid var(--border);padding:calc(var(--safe-top) + 10px) 16px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0}
-.header-icon{width:38px;height:38px;background:#3a2010;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
-.header-text{flex:1}
-.header-title{font-family:'Rajdhani',sans-serif;font-size:19px;font-weight:700;color:var(--text);letter-spacing:1px}
-.header-sub{font-size:11px;color:var(--text3);margin-top:1px}
-.sync-btn{background:none;border:0.5px solid var(--border);border-radius:8px;color:var(--text2);padding:6px 10px;font-size:11px;font-family:'Exo 2',sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s}
-.sync-btn:active{border-color:var(--gold);color:var(--gold)}
-.sync-btn svg{width:12px;height:12px}
-
-/* Nav */
-.nav{display:flex;background:var(--bg1);border-bottom:0.5px solid var(--border);flex-shrink:0}
-.nav-btn{flex:1;padding:9px 2px 8px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text3);font-size:9px;font-family:'Exo 2',sans-serif;font-weight:600;letter-spacing:.4px;text-transform:uppercase;transition:color .15s,border-color .15s}
-.nav-btn svg{width:18px;height:18px}
-.nav-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
-
-/* Screens */
-.screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--safe-bottom) + 16px);opacity:0;pointer-events:none;transform:translateY(6px);transition:opacity .2s,transform .2s}
-.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
-.screen::-webkit-scrollbar{width:0}
-
-/* Form */
-.field{margin-bottom:13px}
-.label{display:block;font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
-select,input[type=number],input[type=text]{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:14px;padding:10px 12px;-webkit-appearance:none;appearance:none;transition:border-color .15s}
-select:focus,input:focus{outline:none;border-color:var(--gold)}
-select option{background:var(--bg2)}
-.vs-row{display:grid;grid-template-columns:1fr 36px 1fr;align-items:end;gap:8px;margin-bottom:14px}
-.vs-pill{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;color:var(--gold)}
-.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.result-card{padding:15px 10px;border-radius:10px;border:0.5px solid var(--border);background:var(--bg2);cursor:pointer;text-align:center;transition:all .15s;user-select:none}
-.result-card svg{width:24px;height:24px;display:block;margin:0 auto 5px}
-.result-card span{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
-.result-card.win{color:var(--green)}.result-card.win.active{background:var(--green-dim);border-color:var(--green)}
-.result-card.loss{color:var(--red)}.result-card.loss.active{background:var(--red-dim);border-color:var(--red)}
-.divider{border:none;border-top:0.5px solid var(--border);margin:14px 0}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.hint{font-size:11px;color:var(--text3);text-align:center;margin-bottom:13px}
-.submit-btn{width:100%;padding:13px;background:var(--gold);border:none;border-radius:10px;color:var(--bg0);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s,transform .1s}
-.submit-btn:active{transform:scale(.98);opacity:.9}
-.submit-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
-
-/* Stats */
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.stat-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:13px}
-.stat-val{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:var(--text)}
-.stat-lbl{font-size:11px;color:var(--text3);margin-top:1px}
-.section-head{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;margin-top:4px}
-.view-toggle{display:flex;gap:5px;margin-bottom:14px;background:var(--bg2);border-radius:10px;padding:4px}
-.toggle-btn{flex:1;padding:7px 2px;border:none;border-radius:7px;background:none;color:var(--text3);font-family:'Exo 2',sans-serif;font-size:10px;font-weight:600;letter-spacing:.4px;cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
-.toggle-btn.active{background:var(--bg3);color:var(--gold)}
-.hero-list{display:flex;flex-direction:column;gap:6px}
-.hero-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px}
-.hero-item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.hero-name{font-size:14px;font-weight:500;color:var(--text)}
-.hero-wr{font-size:13px;font-weight:600}
-.bar-bg{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin:5px 0}
-.bar-fill{height:4px;border-radius:2px}
-.hero-sub{font-size:11px;color:var(--text3)}
-.matchup-vs{font-size:11px;color:var(--text2);margin-bottom:2px}
-
-/* Filters */
-.filter-row{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:8px}
-.filter-chip{padding:4px 9px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:0.5px solid var(--border);background:var(--bg2);color:var(--text3);transition:all .15s;white-space:nowrap}
-.filter-chip.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
-
-/* Pick Recommender */
-.pick-enemy-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.enemy-chip{padding:9px 10px;border-radius:8px;border:0.5px solid var(--border);background:var(--bg2);cursor:pointer;text-align:center;font-size:12px;font-weight:500;color:var(--text2);transition:all .15s;user-select:none}
-.enemy-chip.selected{background:var(--red-dim);border-color:var(--red);color:var(--red)}
-.rec-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
-.rec-rank{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--gold);width:28px;text-align:center;flex-shrink:0}
-.rec-info{flex:1;min-width:0}
-.rec-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
-.rec-detail{font-size:11px;color:var(--text3)}
-.rec-score{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;flex-shrink:0}
-.rec-badge{display:inline-block;font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
-.rec-badge.top{background:var(--gold-dim);color:var(--gold);border:0.5px solid var(--gold)}
-.rec-badge.good{background:var(--green-dim);color:var(--green);border:0.5px solid var(--green)}
-
-/* Heroes screen */
-.add-row{display:flex;gap:8px;margin-bottom:16px}
-.add-row input{flex:1}
-.add-btn{background:var(--gold);border:none;border-radius:8px;color:var(--bg0);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;padding:10px 16px;cursor:pointer;white-space:nowrap;letter-spacing:.5px;transition:opacity .15s}
-.add-btn:active{opacity:.8}
-.roster-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.roster-check{width:18px;height:18px;border-radius:50%;background:var(--green-dim);border:0.5px solid var(--green);display:flex;align-items:center;justify-content:center}
-.roster-check svg{width:10px;height:10px;stroke:var(--green);fill:none;stroke-width:2.5}
-
-/* Loading */
-.loading-msg{text-align:center;color:var(--text3);font-size:13px;padding:32px 0;display:flex;align-items:center;justify-content:center;gap:8px}
-.spinner{width:16px;height:16px;border:2px solid var(--bg3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Toast */
-#toast{position:fixed;bottom:calc(var(--safe-bottom) + 12px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--bg2);border:0.5px solid var(--border);color:var(--text);padding:10px 18px;border-radius:20px;font-size:13px;white-space:nowrap;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:999;max-width:calc(100% - 32px)}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#toast.success{border-color:var(--green);color:var(--green)}
-#toast.error{border-color:var(--red);color:var(--red)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matchup Matrix Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .cell-good { background-color: #86efac; color: #14532d; font-weight: 600; }
+        .cell-okay { background-color: #fef08a; color: #713f12; font-weight: 600; }
+        .cell-bad { background-color: #fca5a5; color: #7f1d1d; font-weight: 600; }
+        .cell-empty { background-color: #f1f5f9; color: #94a3b8; }
+        th, td { border: 1px solid #cbd5e1; text-align: center; min-width: 80px; height: 60px; padding: 4px; }
+        th { background-color: #e2e8f0; font-weight: bold; }
+        
+        /* Tab transitions */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
-<body>
-<div id="app">
+<body class="bg-slate-50 font-sans text-slate-900 h-screen flex flex-col">
 
-  <!-- Header -->
-  <div class="header">
-    <div class="header-icon">
-      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" width="38" height="38">
-        <ellipse cx="20" cy="19" rx="13" ry="12" fill="#7a4f3a"/>
-        <path d="M13 14 Q20 11 27 14" stroke="#5c3826" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-        <ellipse cx="15" cy="16" rx="2.2" ry="1.8" fill="#2a1a10"/>
-        <ellipse cx="25" cy="16" rx="2.2" ry="1.8" fill="#2a1a10"/>
-        <circle cx="15.6" cy="15.5" r="0.6" fill="white"/>
-        <circle cx="25.6" cy="15.5" r="0.6" fill="white"/>
-        <ellipse cx="20" cy="22" rx="7" ry="5" fill="#5c3826"/>
-        <ellipse cx="17.5" cy="20.5" rx="1.3" ry="0.9" fill="#3a1f10"/>
-        <ellipse cx="22.5" cy="20.5" rx="1.3" ry="0.9" fill="#3a1f10"/>
-        <line x1="13" y1="22" x2="3" y2="19.5" stroke="#c8a878" stroke-width="0.9" stroke-linecap="round"/>
-        <line x1="13" y1="23" x2="3" y2="23" stroke="#c8a878" stroke-width="0.9" stroke-linecap="round"/>
-        <line x1="13" y1="24" x2="4" y2="26.5" stroke="#c8a878" stroke-width="0.9" stroke-linecap="round"/>
-        <line x1="14" y1="22.5" x2="6" y2="17" stroke="#c8a878" stroke-width="0.7" stroke-linecap="round"/>
-        <line x1="27" y1="22" x2="37" y2="19.5" stroke="#c8a878" stroke-width="0.9" stroke-linecap="round"/>
-        <line x1="27" y1="23" x2="37" y2="23" stroke="#c8a878" stroke-width="0.9" stroke-linecap="round"/>
-        <line x1="27" y1="24" x2="36" y2="26.5" stroke="#c8a878" stroke-width="0.9" stroke-linecap="round"/>
-        <line x1="26" y1="22.5" x2="34" y2="17" stroke="#c8a878" stroke-width="0.7" stroke-linecap="round"/>
-        <path d="M17 27 Q16 32 15.5 35" stroke="#f0e0b0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M23 27 Q24 32 24.5 35" stroke="#f0e0b0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M17 26 Q20 28 23 26" stroke="#3a1f10" stroke-width="1" fill="none" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="header-text">
-      <div class="header-title">HOK TRACKER</div>
-      <div class="header-sub">Honor of Kings · Matchup Tracker</div>
-    </div>
-    <button class="sync-btn" onclick="syncAll()" aria-label="Sync">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-      Sync
-    </button>
-  </div>
+    <div class="max-w-6xl mx-auto w-full flex-1 flex flex-col p-4 md:p-8">
+        
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold">Clash Lane Analytics</h1>
+            <p class="text-slate-600 mt-2">Quantitative tracking and visualization.</p>
+        </header>
 
-  <!-- Nav -->
-  <nav class="nav" role="tablist">
-    <button class="nav-btn active" onclick="showScreen('log',this)" role="tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      Log
-    </button>
-    <button class="nav-btn" onclick="showScreen('stats',this)" role="tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Stats
-    </button>
-    <button class="nav-btn" onclick="showScreen('pick',this)" role="tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      Pick
-    </button>
-    <button class="nav-btn" onclick="showScreen('heroes',this)" role="tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-      Heroes
-    </button>
-  </nav>
+        <nav class="flex space-x-2 border-b border-slate-300 mb-6" aria-label="Tabs">
+            <button onclick="switchTab('tab-log', this)" class="tab-btn active px-4 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600 transition-colors">
+                Data Entry
+            </button>
+            <button onclick="switchTab('tab-matrix', this)" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 transition-colors">
+                Performance Matrix
+            </button>
+        </nav>
 
-  <div class="screens">
+        <div class="flex-1 bg-white rounded-lg shadow-sm border border-slate-200 p-6 relative overflow-hidden">
+            
+            <div id="tab-log" class="tab-content active h-full">
+                <h2 class="text-xl font-semibold mb-6">Log New Matchup</h2>
+                <form id="matchupForm" class="max-w-md space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">My Pick (Y-Axis)</label>
+                        <input type="text" id="myPick" required class="w-full border border-slate-300 rounded px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" placeholder="e.g., Lu Bu">
+                    </div>
+                    
+                    <div class="flex items-center justify-center py-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full border border-slate-200">Versus</span>
+                    </div>
 
-    <!-- LOG -->
-    <div id="screen-log" class="screen active" role="tabpanel">
-      <div id="logLoading" class="loading-msg"><div class="spinner"></div>Loading heroes…</div>
-      <div id="logForm" style="display:none">
-        <div class="vs-row">
-          <div class="field">
-            <label class="label">Your hero</label>
-            <select id="myHero"><option value="">— Select —</option></select>
-          </div>
-          <div class="vs-pill">VS</div>
-          <div class="field">
-            <label class="label">Enemy hero</label>
-            <select id="enemyHero"><option value="">— Select —</option></select>
-          </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Enemy Pick (X-Axis)</label>
+                        <input type="text" id="enemyPick" required class="w-full border border-slate-300 rounded px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" placeholder="e.g., Biron">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Result</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="matchResult" value="win" class="peer sr-only" required>
+                                <div class="text-center px-4 py-3 border border-slate-300 rounded peer-checked:bg-green-100 peer-checked:border-green-600 peer-checked:text-green-800 font-semibold transition-colors">Win</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="matchResult" value="loss" class="peer sr-only">
+                                <div class="text-center px-4 py-3 border border-slate-300 rounded peer-checked:bg-red-100 peer-checked:border-red-600 peer-checked:text-red-800 font-semibold transition-colors">Loss</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex gap-4">
+                        <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded transition-colors">
+                            Append Data
+                        </button>
+                        <button type="button" id="clearData" class="text-red-600 border border-red-200 hover:bg-red-50 font-medium py-3 px-6 rounded transition-colors" title="Delete all local data">
+                            Clear Data
+                        </button>
+                    </div>
+                    
+                    <div id="statusMessage" class="h-6 text-sm font-medium text-center transition-opacity opacity-0"></div>
+                </form>
+            </div>
+
+            <div id="tab-matrix" class="tab-content h-full flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Matchup Matrix</h2>
+                    <p class="text-sm text-slate-500">Row = My Pick, Column = Enemy Pick</p>
+                </div>
+                <div class="overflow-auto flex-1 border border-slate-200 rounded">
+                    <div id="matrixContainer" class="min-w-max">
+                        </div>
+                </div>
+            </div>
+
         </div>
-        <label class="label">Result</label>
-        <div class="result-grid">
-          <div class="result-card win" id="btnWin" onclick="setResult('win')" role="button" tabindex="0">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <span>Win</span>
-          </div>
-          <div class="result-card loss" id="btnLoss" onclick="setResult('loss')" role="button" tabindex="0">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            <span>Loss</span>
-          </div>
-        </div>
-        <hr class="divider">
-        <label class="label" style="margin-bottom:8px">Or override totals manually</label>
-        <div class="two-col" style="margin-bottom:8px">
-          <div class="field">
-            <label class="label">Total wins</label>
-            <input type="number" id="totalWins" min="0" placeholder="—">
-          </div>
-          <div class="field">
-            <label class="label">Total games</label>
-            <input type="number" id="totalGames" min="0" placeholder="—">
-          </div>
-        </div>
-        <p class="hint">Leave blank → auto +1 from current data</p>
-        <button class="submit-btn" id="submitBtn" onclick="submitMatch()">Record Match</button>
-      </div>
     </div>
 
-    <!-- STATS -->
-    <div id="screen-stats" class="screen" role="tabpanel">
-      <div id="statsLoading" class="loading-msg"><div class="spinner"></div>Loading stats…</div>
-      <div id="statsContent" style="display:none">
-        <div class="stat-grid" id="summaryCards"></div>
-        <div class="view-toggle">
-          <button class="toggle-btn active" id="toggleMatchup" onclick="setStatsView('matchup')">Matchups</button>
-          <button class="toggle-btn" id="toggleHero" onclick="setStatsView('hero')">My Heroes</button>
-          <button class="toggle-btn" id="toggleEnemy" onclick="setStatsView('enemy')">vs Enemy</button>
-        </div>
+    <script>
+        // System State Initialization
+        let matchData = JSON.parse(localStorage.getItem('matchupData')) || [];
+        const form = document.getElementById('matchupForm');
+        const clearBtn = document.getElementById('clearData');
+        const matrixContainer = document.getElementById('matrixContainer');
+        const statusMessage = document.getElementById('statusMessage');
 
-        <div id="viewMatchup">
-          <div class="filter-row" id="myHeroFilterRow">
-            <div class="filter-chip active" onclick="filterMy('all',this)">All</div>
-          </div>
-          <div class="filter-row" id="enemyFilterRow">
-            <span style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-right:2px">vs</span>
-            <div class="filter-chip active" onclick="filterEnemy('all',this)">All</div>
-          </div>
-          <div class="hero-list" id="matchupList" style="margin-top:10px"></div>
-        </div>
+        // Tab Navigation Logic
+        function switchTab(targetId, btnElement) {
+            // Update active content
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(targetId).classList.add('active');
 
-        <div id="viewHero" style="display:none">
-          <div class="section-head">Overall by your hero</div>
-          <div class="hero-list" id="heroList"></div>
-        </div>
-        <div id="viewEnemy" style="display:none">
-          <div class="section-head">Your win rate against each enemy</div>
-          <div class="hero-list" id="enemyList"></div>
-        </div>
-      </div>
-    </div>
+            // Update active button styling
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-600', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+            btnElement.classList.remove('border-transparent', 'text-slate-500');
+            btnElement.classList.add('border-blue-600', 'text-blue-600');
 
-    <!-- PICK RECOMMENDER -->
-    <div id="screen-pick" class="screen" role="tabpanel">
-      <div id="pickLoading" class="loading-msg" style="display:none"><div class="spinner"></div>Analysing…</div>
-      <div id="pickForm">
-        <div class="section-head">Enemy heroes picked so far</div>
-        <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Tap all enemies already in the draft. The recommender scores your heroes against the full enemy composition.</p>
-        <div class="pick-enemy-grid" id="enemyPickGrid"></div>
-        <button class="submit-btn" style="margin-bottom:16px" onclick="runRecommender()">🎯 Recommend My Pick</button>
-      </div>
-      <div id="pickResults" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="section-head" style="margin:0">Recommended picks</div>
-          <button onclick="resetPick()" style="background:none;border:0.5px solid var(--border);border-radius:6px;color:var(--text3);font-size:11px;padding:4px 10px;cursor:pointer;font-family:'Exo 2',sans-serif">Reset</button>
-        </div>
-        <div id="recContext" style="font-size:12px;color:var(--text3);margin-bottom:12px"></div>
-        <div id="recList"></div>
-      </div>
-    </div>
+            // Render matrix if switching to visualization tab
+            if (targetId === 'tab-matrix') {
+                renderMatrix();
+            }
+        }
 
-    <!-- HEROES -->
-    <div id="screen-heroes" class="screen" role="tabpanel">
-      <div class="section-head">Add new hero</div>
-      <div class="add-row">
-        <input type="text" id="newHeroName" placeholder="e.g. Sun Ce" autocomplete="off">
-        <button class="add-btn" onclick="addHero()">Add</button>
-      </div>
-      <div class="section-head">Current roster</div>
-      <div id="heroRoster"><div class="loading-msg"><div class="spinner"></div>Loading…</div></div>
-    </div>
+        // Display temporary status messages
+        function showStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            statusMessage.className = `h-6 text-sm font-medium text-center transition-opacity opacity-100 ${isError ? 'text-red-600' : 'text-green-600'}`;
+            setTimeout(() => { statusMessage.classList.replace('opacity-100', 'opacity-0'); }, 3000);
+        }
 
-  </div>
-</div>
-<div id="toast" role="status" aria-live="polite"></div>
+        // Event Listener: Form Submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const myPickRaw = document.getElementById('myPick').value.trim();
+            const enemyPickRaw = document.getElementById('enemyPick').value.trim();
+            const resultElement = document.querySelector('input[name="matchResult"]:checked');
 
-<script>
-const SHEET_ID  = '1bPpm8_QH20WyIFTLyKIrCV01IYulI63-_f5O9Byvjf4';
-const API_KEY   = 'AIzaSyAm5ESsYBbZSAaKkU7c8ZPNLndL6KIKu8U';
-const BASE      = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
-const HDR_ROW=4, DATA_START=5, COL_START=2;
+            if (!resultElement) {
+                showStatus('Please select a match result.', true);
+                return;
+            }
 
-let heroes=[], selectedResult=null, statsLoaded=false;
-let allMatchups=[], activeMyFilter='all', activeEnFilter='all';
-// matchupData[myHero][enemyHero] = {w, g}
-let matchupData={};
+            // Standardize string formatting
+            const payload = {
+                myPick: myPickRaw.charAt(0).toUpperCase() + myPickRaw.slice(1).toLowerCase(),
+                enemyPick: enemyPickRaw.charAt(0).toUpperCase() + enemyPickRaw.slice(1).toLowerCase(),
+                result: resultElement.value
+            };
 
-function colLetter(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
+            matchData.push(payload);
+            localStorage.setItem('matchupData', JSON.stringify(matchData));
+            
+            showStatus(`Successfully logged: ${payload.myPick} vs ${payload.enemyPick}`);
+            
+            // Reset form except for "My Pick" to streamline sequential entry
+            document.getElementById('enemyPick').value = '';
+            document.querySelectorAll('input[name="matchResult"]').forEach(rb => rb.checked = false);
+            
+            // Re-render matrix in the background
+            renderMatrix();
+        });
 
-let toastTimer;
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{t.className='toast';},2800);
-}
+        // Event Listener: Data Clearing
+        clearBtn.addEventListener('click', function() {
+            if (confirm("Are you certain? This will irrevocably delete your localized dataset.")) {
+                matchData = [];
+                localStorage.removeItem('matchupData');
+                renderMatrix();
+                showStatus('Dataset cleared.', true);
+            }
+        });
 
-async function apiGet(ranges){
-  const q=ranges.map(r=>'ranges='+encodeURIComponent(r)).join('&');
-  const res=await fetch(`${BASE}/values:batchGet?${q}&key=${API_KEY}`);
-  if(!res.ok) throw new Error('API '+res.status);
-  const d=await res.json();
-  return (d.valueRanges||[]).map(vr=>vr.values||[]);
-}
+        // Matrix Generation Logic
+        function renderMatrix() {
+            if (matchData.length === 0) {
+                matrixContainer.innerHTML = '<div class="p-8 text-center text-slate-500 italic">No data logged. The matrix requires input to initialize.</div>';
+                return;
+            }
 
-async function apiPut(range,values){
-  const res=await fetch(`${BASE}/values/${encodeURIComponent(range)}?valueInputOption=RAW&key=${API_KEY}`,
-    {method:'PUT',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({range,majorDimension:'ROWS',values})});
-  if(!res.ok) throw new Error('Write '+res.status);
-}
+            // Extract distinct heroes and sort alphabetically
+            const myHeroes = [...new Set(matchData.map(d => d.myPick))].sort();
+            const enemyHeroes = [...new Set(matchData.map(d => d.enemyPick))].sort();
 
-function showScreen(name,btn){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
-  btn.classList.add('active');
-  if(name==='stats'&&!statsLoaded) loadStats();
-  if(name==='pick') buildPickGrid();
-}
+            // Construct Table Headers
+            let tableHTML = '<table class="w-full border-collapse"><thead><tr>';
+            tableHTML += '<th class="sticky top-0 left-0 z-20 bg-slate-300">My Pick \\ Enemy</th>';
+            
+            enemyHeroes.forEach(hero => {
+                tableHTML += `<th class="sticky top-0 z-10 bg-slate-200">${hero}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
 
-// ── Load heroes ──────────────────────────────────────────────────
-async function loadHeroes(){
-  try{
-    const [hdrVals,rowVals]=await apiGet([
-      `Wins!${colLetter(COL_START)}${HDR_ROW}:ZZ${HDR_ROW}`,
-      `Wins!A${DATA_START}:A300`
-    ]);
-    const colH=(hdrVals[0]||[]).filter(h=>h&&h.trim());
-    const rowH=(rowVals||[]).map(r=>r[0]).filter(h=>h&&h.trim());
-    heroes=[...new Set([...colH,...rowH])].sort();
-    populateSelects();
-    document.getElementById('logLoading').style.display='none';
-    document.getElementById('logForm').style.display='block';
-    renderRoster();
-  }catch(e){
-    document.getElementById('logLoading').innerHTML='<span style="color:var(--red)">Failed to load. Check API key &amp; Sheet sharing.</span>';
-  }
-}
+            // Construct Table Rows
+            myHeroes.forEach(myHero => {
+                tableHTML += `<tr><th class="sticky left-0 z-10 bg-slate-200 text-left px-4 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">${myHero}</th>`;
+                
+                enemyHeroes.forEach(enemyHero => {
+                    const subset = matchData.filter(d => d.myPick === myHero && d.enemyPick === enemyHero);
+                    const totalMatches = subset.length;
+                    
+                    if (totalMatches === 0) {
+                        tableHTML += `<td class="cell-empty">-</td>`;
+                    } else {
+                        const wins = subset.filter(d => d.result === 'win').length;
+                        const winRate = (wins / totalMatches) * 100;
+                        
+                        let cssClass = 'cell-okay';
+                        if (winRate >= 55) cssClass = 'cell-good';
+                        if (winRate <= 45) cssClass = 'cell-bad';
 
-function populateSelects(){
-  ['myHero','enemyHero'].forEach(id=>{
-    const s=document.getElementById(id); const cur=s.value;
-    s.innerHTML='<option value="">— Select —</option>'+heroes.map(h=>`<option value="${h}">${h}</option>`).join('');
-    if(cur) s.value=cur;
-  });
-}
+                        tableHTML += `<td class="${cssClass}">
+                            <div class="text-lg">${Math.round(winRate)}%</div>
+                            <div class="text-xs font-normal opacity-75">${wins}W - ${totalMatches - wins}L</div>
+                        </td>`;
+                    }
+                });
+                tableHTML += '</tr>';
+            });
 
-// ── Log match ────────────────────────────────────────────────────
-function setResult(r){
-  selectedResult=(selectedResult===r)?null:r;
-  document.getElementById('btnWin').classList.toggle('active',selectedResult==='win');
-  document.getElementById('btnLoss').classList.toggle('active',selectedResult==='loss');
-}
+            tableHTML += '</tbody></table>';
+            matrixContainer.innerHTML = tableHTML;
+        }
 
-async function submitMatch(){
-  const my=document.getElementById('myHero').value;
-  const en=document.getElementById('enemyHero').value;
-  const tw=document.getElementById('totalWins').value;
-  const tg=document.getElementById('totalGames').value;
-  if(!my||!en){showToast('Select both heroes','error');return;}
-  if(my===en){showToast('Pick different heroes!','error');return;}
-  if(!selectedResult&&tw===''&&tg===''){showToast('Pick Win/Loss or set totals','error');return;}
-  const btn=document.getElementById('submitBtn');
-  btn.disabled=true; btn.textContent='Saving…';
-  try{
-    const [wSheet,gSheet]=await apiGet([`Wins!A${HDR_ROW}:ZZ300`,`Games!A${HDR_ROW}:ZZ300`]);
-    const hdr=wSheet[0]||[];
-    const myRowIdx=wSheet.findIndex((r,i)=>i>0&&r[0]===my);
-    const enColIdx=hdr.findIndex((c,i)=>i>=COL_START-1&&c===en);
-    if(myRowIdx===-1||enColIdx===-1){showToast('Hero not found — try Sync','error');btn.disabled=false;btn.textContent='Record Match';return;}
-    const sheetRow=HDR_ROW+myRowIdx, sheetCol=enColIdx+1;
-    const cell=`${colLetter(sheetCol)}${sheetRow}`;
-    const curW=parseInt((wSheet[myRowIdx]||[])[enColIdx])||0;
-    const curG=parseInt((gSheet[myRowIdx]||[])[enColIdx])||0;
-    const newW=tw!==''?parseInt(tw):curW+(selectedResult==='win'?1:0);
-    const newG=tg!==''?parseInt(tg):curG+1;
-    await apiPut(`Wins!${cell}`,[[newW]]);
-    await apiPut(`Games!${cell}`,[[newG]]);
-    showToast(`✓ ${my} vs ${en} — ${selectedResult?selectedResult.toUpperCase():'updated'}','success`);
-    selectedResult=null;
-    document.getElementById('btnWin').classList.remove('active');
-    document.getElementById('btnLoss').classList.remove('active');
-    document.getElementById('totalWins').value='';
-    document.getElementById('totalGames').value='';
-    statsLoaded=false;
-  }catch(e){showToast('Save failed. Check connection.','error');}
-  btn.disabled=false; btn.textContent='Record Match';
-}
-
-// ── Stats ─────────────────────────────────────────────────────────
-function heroItemHTML(mainLabel, subLabel, w, g, wr){
-  const pct=(wr*100).toFixed(1);
-  const col=wr>=0.6?'var(--green)':wr>=0.4?'var(--gold)':'var(--red)';
-  const bar=Math.round(wr*100);
-  return `<div class="hero-item">
-    <div class="hero-item-top">
-      <span class="hero-name">${mainLabel}</span>
-      <span class="hero-wr" style="color:${col}">${pct}%</span>
-    </div>
-    ${subLabel?`<div class="matchup-vs">${subLabel}</div>`:''}
-    <div class="bar-bg"><div class="bar-fill" style="width:${bar}%;background:${col}"></div></div>
-    <div class="hero-sub">${w}W / ${g-w}L · ${g} game${g!==1?'s':''}</div>
-  </div>`;
-}
-
-function setStatsView(view){
-  ['Matchup','Hero','Enemy'].forEach(v=>{
-    document.getElementById('view'+v).style.display=view.toLowerCase()===v.toLowerCase()?'block':'none';
-    document.getElementById('toggle'+v).classList.toggle('active',view.toLowerCase()===v.toLowerCase());
-  });
-}
-
-function filterMy(h,chip){
-  activeMyFilter=h;
-  document.querySelectorAll('#myHeroFilterRow .filter-chip').forEach(c=>c.classList.remove('active'));
-  chip.classList.add('active'); renderMatchupList();
-}
-function filterEnemy(h,chip){
-  activeEnFilter=h;
-  document.querySelectorAll('#enemyFilterRow .filter-chip').forEach(c=>c.classList.remove('active'));
-  chip.classList.add('active'); renderMatchupList();
-}
-
-function renderMatchupList(){
-  const filtered=allMatchups.filter(m=>
-    (activeMyFilter==='all'||m.myHero===activeMyFilter)&&
-    (activeEnFilter==='all'||m.enemyHero===activeEnFilter)
-  );
-  // ── FIX: display as "YOU (myHero) vs ENEMY (enemyHero)"
-  // Row = your hero (who YOU picked), Col = enemy hero (who THEY picked)
-  document.getElementById('matchupList').innerHTML=filtered.length
-    ? filtered.map(m=>heroItemHTML(
-        `<strong style="color:var(--text)">${m.myHero}</strong>`,
-        `<span style="color:var(--text3)">as</span> ${m.myHero} <span style="color:var(--text3)">vs</span> <span style="color:var(--red)">${m.enemyHero}</span>`,
-        m.w,m.g,m.wr
-      )).join('')
-    : '<div class="loading-msg" style="padding:16px 0">No matchups found.</div>';
-}
-
-async function loadStats(){
-  document.getElementById('statsLoading').style.display='flex';
-  document.getElementById('statsContent').style.display='none';
-  try{
-    const [wSheet,gSheet]=await apiGet([`Wins!A${HDR_ROW}:ZZ300`,`Games!A${HDR_ROW}:ZZ300`]);
-    const hdrRow=wSheet[0]||[];
-    const dataRows=wSheet.slice(1).filter(r=>r[0]&&r[0].trim());
-    let totalW=0,totalG=0;
-    allMatchups=[];
-    matchupData={};
-    const byMyHero={}, byEnemy={};
-
-    dataRows.forEach((wRow,i)=>{
-      const gRow=gSheet[i+1]||[];
-      // wRow[0] = YOUR hero (row label = who you played AS)
-      const myHero=wRow[0];
-      if(!byMyHero[myHero]) byMyHero[myHero]={w:0,g:0};
-      if(!matchupData[myHero]) matchupData[myHero]={};
-
-      // hdrRow[c] for c>=1 = ENEMY hero (col header = who you played AGAINST)
-      for(let c=1;c<hdrRow.length;c++){
-        const enemyHero=hdrRow[c];
-        if(!enemyHero||!enemyHero.trim()) continue;
-        const w=parseInt(wRow[c])||0;
-        const g=parseInt(gRow[c])||0;
-        matchupData[myHero][enemyHero]={w,g};
-        if(g===0) continue;
-        totalW+=w; totalG+=g;
-        byMyHero[myHero].w+=w; byMyHero[myHero].g+=g;
-        if(!byEnemy[enemyHero]) byEnemy[enemyHero]={w:0,g:0};
-        byEnemy[enemyHero].w+=w; byEnemy[enemyHero].g+=g;
-        // myHero = who YOU played, enemyHero = who THEY played
-        allMatchups.push({myHero,enemyHero,w,g,wr:w/g});
-      }
-    });
-
-    allMatchups.sort((a,b)=>b.wr-a.wr||b.g-a.g);
-
-    // Build filter chips — "my hero" filters = heroes YOU played as
-    const myHeroes=[...new Set(allMatchups.map(m=>m.myHero))].sort();
-    document.getElementById('myHeroFilterRow').innerHTML=
-      `<div class="filter-chip active" onclick="filterMy('all',this)">All</div>`+
-      myHeroes.map(h=>`<div class="filter-chip" onclick="filterMy('${h}',this)">${h}</div>`).join('');
-
-    const enemyHeroes=[...new Set(allMatchups.map(m=>m.enemyHero))].sort();
-    document.getElementById('enemyFilterRow').innerHTML=
-      `<span style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-right:2px">vs</span>`+
-      `<div class="filter-chip active" onclick="filterEnemy('all',this)">All</div>`+
-      enemyHeroes.map(h=>`<div class="filter-chip" onclick="filterEnemy('${h}',this)">${h}</div>`).join('');
-
-    activeMyFilter='all'; activeEnFilter='all';
-    renderMatchupList();
-
-    const heroArr=Object.entries(byMyHero).filter(([,v])=>v.g>0)
-      .map(([hero,v])=>({hero,...v,wr:v.w/v.g})).sort((a,b)=>b.wr-a.wr);
-    document.getElementById('heroList').innerHTML=heroArr.length
-      ? heroArr.map(s=>heroItemHTML(`<strong>${s.hero}</strong>`,null,s.w,s.g,s.wr)).join('')
-      : '<div class="loading-msg">No data yet.</div>';
-
-    const enemyArr=Object.entries(byEnemy).filter(([,v])=>v.g>0)
-      .map(([hero,v])=>({hero,...v,wr:v.w/v.g})).sort((a,b)=>b.wr-a.wr);
-    document.getElementById('enemyList').innerHTML=enemyArr.length
-      ? enemyArr.map(s=>heroItemHTML(
-          `vs <strong>${s.hero}</strong>`,
-          'across all your heroes',s.w,s.g,s.wr)).join('')
-      : '<div class="loading-msg">No data yet.</div>';
-
-    const overallWR=totalG>0?(totalW/totalG*100).toFixed(1)+'%':'—';
-    document.getElementById('summaryCards').innerHTML=`
-      <div class="stat-card"><div class="stat-val">${overallWR}</div><div class="stat-lbl">Overall win rate</div></div>
-      <div class="stat-card"><div class="stat-val">${totalG}</div><div class="stat-lbl">Total games</div></div>
-      <div class="stat-card"><div class="stat-val">${totalW}</div><div class="stat-lbl">Wins</div></div>
-      <div class="stat-card"><div class="stat-val">${totalG-totalW}</div><div class="stat-lbl">Losses</div></div>`;
-
-    document.getElementById('statsLoading').style.display='none';
-    document.getElementById('statsContent').style.display='block';
-    statsLoaded=true;
-  }catch(e){
-    document.getElementById('statsLoading').innerHTML='<span style="color:var(--red)">Failed to load stats.</span>';
-    console.error(e);
-  }
-}
-
-// ── Pick Recommender ──────────────────────────────────────────────
-let selectedEnemies=new Set();
-
-function buildPickGrid(){
-  const grid=document.getElementById('enemyPickGrid');
-  if(!heroes.length){grid.innerHTML='<p style="color:var(--text3);font-size:12px">Sync heroes first.</p>';return;}
-  grid.innerHTML=heroes.map(h=>
-    `<div class="enemy-chip${selectedEnemies.has(h)?' selected':''}" onclick="toggleEnemy('${h}',this)">${h}</div>`
-  ).join('');
-}
-
-function toggleEnemy(h,el){
-  if(selectedEnemies.has(h)){selectedEnemies.delete(h);el.classList.remove('selected');}
-  else{selectedEnemies.add(h);el.classList.add('selected');}
-}
-
-function runRecommender(){
-  if(!statsLoaded){
-    showToast('Load stats first (tap Stats tab)','error'); return;
-  }
-  if(selectedEnemies.size===0){
-    showToast('Select at least one enemy hero','error'); return;
-  }
-
-  const enemyList=[...selectedEnemies];
-
-  // Score each of your heroes against the selected enemy comp
-  const scores=[];
-  const myHeroesKnown=Object.keys(matchupData);
-
-  myHeroesKnown.forEach(myHero=>{
-    let totalScore=0, covered=0, totalGames=0;
-    const details=[];
-
-    enemyList.forEach(enemy=>{
-      const d=(matchupData[myHero]||{})[enemy];
-      if(d&&d.g>0){
-        const wr=d.w/d.g;
-        totalScore+=wr; covered++; totalGames+=d.g;
-        details.push({enemy,wr,g:d.g});
-      }
-    });
-
-    // Weighted avg: covered matchups count, uncovered treated as 0.5 (neutral)
-    const unknownCount=enemyList.length-covered;
-    const compositeScore=(totalScore+(unknownCount*0.5))/enemyList.length;
-
-    scores.push({myHero,score:compositeScore,covered,totalGames,details,unknown:unknownCount});
-  });
-
-  scores.sort((a,b)=>b.score-a.score);
-  const top=scores.slice(0,5);
-
-  document.getElementById('pickForm').style.display='none';
-  document.getElementById('pickResults').style.display='block';
-
-  document.getElementById('recContext').textContent=
-    `Enemy comp: ${enemyList.join(', ')} · Based on your recorded matchup data`;
-
-  document.getElementById('recList').innerHTML=top.map((s,i)=>{
-    const pct=(s.score*100).toFixed(1);
-    const col=s.score>=0.6?'var(--green)':s.score>=0.5?'var(--gold)':'var(--red)';
-    const badge=i===0?'<span class="rec-badge top">Best Pick</span>':s.score>=0.6?'<span class="rec-badge good">Good</span>':'';
-    const knownStr=s.covered>0
-      ? s.details.map(d=>`${(d.wr*100).toFixed(0)}% vs ${d.enemy}`).join(' · ')
-      : 'No data vs these enemies';
-    const unknownStr=s.unknown>0?` · ${s.unknown} unknown matchup${s.unknown>1?'s':''}`:'' ;
-    return `<div class="rec-card">
-      <div class="rec-rank">${i+1}</div>
-      <div class="rec-info">
-        <div class="rec-name">${s.myHero}${badge}</div>
-        <div class="rec-detail">${knownStr}${unknownStr}</div>
-      </div>
-      <div class="rec-score" style="color:${col}">${pct}%</div>
-    </div>`;
-  }).join('');
-}
-
-function resetPick(){
-  selectedEnemies=new Set();
-  document.getElementById('pickForm').style.display='block';
-  document.getElementById('pickResults').style.display='none';
-  buildPickGrid();
-}
-
-// ── Heroes screen ────────────────────────────────────────────────
-function renderRoster(){
-  const el=document.getElementById('heroRoster');
-  if(!heroes.length){el.innerHTML='<div class="loading-msg">No heroes found.</div>';return;}
-  el.innerHTML=heroes.map(h=>`
-    <div class="roster-item">
-      <span class="hero-name">${h}</span>
-      <div class="roster-check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
-    </div>`).join('');
-}
-
-async function addHero(){
-  const name=document.getElementById('newHeroName').value.trim();
-  if(!name){showToast('Enter a hero name','error');return;}
-  if(heroes.map(h=>h.toLowerCase()).includes(name.toLowerCase())){showToast(`${name} already exists`,'error');return;}
-  const btn=document.querySelector('.add-btn');
-  btn.disabled=true; btn.textContent='…';
-  try{
-    const [wHdr,wRows]=await apiGet([
-      `Wins!${colLetter(COL_START)}${HDR_ROW}:ZZ${HDR_ROW}`,
-      `Wins!A${DATA_START}:A300`
-    ]);
-    const existingCols=(wHdr[0]||[]).filter(h=>h&&h.trim()).length;
-    const existingRows=(wRows||[]).filter(r=>r[0]&&r[0].trim()).length;
-    const nextCol=COL_START+existingCols, nextRow=DATA_START+existingRows;
-    await apiPut(`Wins!${colLetter(nextCol)}${HDR_ROW}`,[[name]]);
-    await apiPut(`Wins!A${nextRow}`,[[name]]);
-    await apiPut(`Games!${colLetter(nextCol)}${HDR_ROW}`,[[name]]);
-    await apiPut(`Games!A${nextRow}`,[[name]]);
-    heroes=[...new Set([...heroes,name])].sort();
-    populateSelects(); renderRoster();
-    document.getElementById('newHeroName').value='';
-    showToast(`${name} added`,'success');
-    statsLoaded=false;
-  }catch(e){showToast('Failed to add hero','error');}
-  btn.disabled=false; btn.textContent='Add';
-}
-
-async function syncAll(){
-  showToast('Syncing…'); statsLoaded=false;
-  await loadHeroes();
-  if(document.getElementById('screen-stats').classList.contains('active')) await loadStats();
-  showToast('Synced!','success');
-}
-
-document.getElementById('btnWin').addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')setResult('win');});
-document.getElementById('btnLoss').addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')setResult('loss');});
-document.getElementById('newHeroName').addEventListener('keydown',e=>{if(e.key==='Enter')addHero();});
-
-loadHeroes();
-</script>
+        // Initialize background data
+        renderMatrix();
+    </script>
 </body>
 </html>
