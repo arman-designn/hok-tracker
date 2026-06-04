@@ -37,6 +37,7 @@
                 <p class="text-gray-400 mt-2">Quantitative tracking and visualization across multiple roles.</p>
             </div>
             
+            <!-- Global Role Selector -->
             <div class="flex items-center space-x-3">
                 <label for="globalRole" class="text-sm font-medium text-gray-300">Active Role:</label>
                 <select id="globalRole" class="bg-gray-800 border border-gray-600 text-white rounded px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-shadow">
@@ -65,6 +66,7 @@
                 
                 <form id="matchupForm" class="max-w-md space-y-5">
                     
+                    <!-- Dynamic Datalist for Heroes -->
                     <datalist id="heroDatabaseList"></datalist>
 
                     <div>
@@ -107,19 +109,38 @@
                     <div id="statusMessage" class="h-6 text-sm font-medium text-center transition-opacity opacity-0"></div>
                 </form>
 
-                <div class="max-w-md mt-8 pt-6 border-t border-gray-700">
-                    <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Database Management</h3>
-                    <div class="flex gap-4">
-                        <button type="button" onclick="exportData()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
-                            Export Backup
-                        </button>
-                        <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
-                            Import Backup
-                        </button>
-                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+                <div class="flex flex-col md:flex-row gap-6 mt-8 pt-6 border-t border-gray-700 max-w-2xl">
+                    <!-- Icon Management Section -->
+                    <div class="flex-1">
+                        <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Map Hero Icons</h3>
+                        <div class="flex gap-2">
+                            <select id="heroImageSelect" class="flex-1 bg-gray-700 border border-gray-600 text-white text-sm rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                                <option value="" disabled selected>Select hero...</option>
+                            </select>
+                            <button type="button" onclick="document.getElementById('imageUploadFile').click()" class="border border-purple-600 bg-purple-900/30 hover:bg-purple-900/60 text-purple-300 text-sm font-medium py-2 px-4 rounded transition-colors whitespace-nowrap">
+                                + Add Image
+                            </button>
+                            <input type="file" id="imageUploadFile" class="hidden" accept="image/*" onchange="handleImageUpload(event)">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Replaces names in the matrix. Uploaded images are auto-compressed.</p>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Export your data before moving or updating HTML files to prevent data loss.</p>
+
+                    <!-- Data Backup Section -->
+                    <div class="flex-1">
+                        <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Database Backup</h3>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="exportData()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
+                                Export Backup
+                            </button>
+                            <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
+                                Import Backup
+                            </button>
+                            <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Exports records, hero database, and custom icons.</p>
+                    </div>
                 </div>
+                
             </div>
 
             <div id="tab-matrix" class="tab-content h-full flex flex-col">
@@ -129,7 +150,8 @@
                 </div>
                 <div class="overflow-auto flex-1 border border-gray-700 rounded bg-gray-800">
                     <div id="matrixContainer" class="min-w-max">
-                        </div>
+                        <!-- Matrix renders here -->
+                    </div>
                 </div>
             </div>
 
@@ -139,10 +161,11 @@
     <script>
         // System State Initialization
         let matchData = JSON.parse(localStorage.getItem('matchupDataV2')) || [];
-        
         let heroDB = JSON.parse(localStorage.getItem('heroDB')) || {
             'Clash Lane': [], 'Jungle': [], 'Midlane': [], 'ADC': [], 'Roamer': []
         };
+        // New State: Base64 mapped images
+        let heroImages = JSON.parse(localStorage.getItem('heroImages')) || {};
 
         const form = document.getElementById('matchupForm');
         const clearBtn = document.getElementById('clearData');
@@ -150,6 +173,7 @@
         const statusMessage = document.getElementById('statusMessage');
         const roleSelector = document.getElementById('globalRole');
         const heroDatalist = document.getElementById('heroDatabaseList');
+        const heroImageSelect = document.getElementById('heroImageSelect');
         const matrixTitle = document.getElementById('matrixTitle');
 
         const myPickInput = document.getElementById('myPick');
@@ -195,16 +219,25 @@
             setTimeout(() => { statusMessage.classList.replace('opacity-100', 'opacity-0'); }, 3000);
         }
 
-        // Updates the HTML <datalist> with heroes specific to the currently selected role
+        // Updates the HTML <datalist> and the Image Mapper <select> 
         function updateDatalist() {
             const currentRole = roleSelector.value;
             const heroes = heroDB[currentRole] || [];
             
             heroDatalist.innerHTML = '';
+            heroImageSelect.innerHTML = '<option value="" disabled selected>Select hero...</option>';
+            
             heroes.sort().forEach(hero => {
-                const option = document.createElement('option');
-                option.value = hero;
-                heroDatalist.appendChild(option);
+                // Add to auto-complete list
+                const dlOption = document.createElement('option');
+                dlOption.value = hero;
+                heroDatalist.appendChild(dlOption);
+
+                // Add to Image mapping dropdown
+                const selOption = document.createElement('option');
+                selOption.value = hero;
+                selOption.textContent = hero;
+                heroImageSelect.appendChild(selOption);
             });
         }
 
@@ -219,9 +252,56 @@
             }
         }
 
-        // Immediately register heroes when typing finishes, so the other box can access it
         myPickInput.addEventListener('blur', function() { ensureHeroInDatabase(roleSelector.value, this.value.trim()); });
         enemyPickInput.addEventListener('blur', function() { ensureHeroInDatabase(roleSelector.value, this.value.trim()); });
+
+        // Handle Image Mapping Upload with Canvas Resize (prevents local storage quota breach)
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            const heroName = heroImageSelect.value;
+            
+            if (!file) return;
+            if (!heroName) {
+                showStatus('Please select a hero from the dropdown first.', true);
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 120;
+                    const MAX_HEIGHT = 120;
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Calculate new dimensions
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Compress to jpeg format data string
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    
+                    heroImages[heroName] = compressedDataUrl;
+                    localStorage.setItem('heroImages', JSON.stringify(heroImages));
+                    showStatus(`Icon successfully mapped for ${heroName}`);
+                    renderMatrix();
+                }
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // Reset input
+        }
 
         // Event Listener: Form Submission
         form.addEventListener('submit', function(e) {
@@ -252,28 +332,30 @@
             
             showStatus(`Logged [${currentRole}]: ${payload.myPick} vs ${payload.enemyPick}`);
             
-            // Only clear the result selection to allow rapid repeated entry of the same matchup
             document.querySelectorAll('input[name="matchResult"]').forEach(rb => rb.checked = false);
-            
             renderMatrix();
         });
 
         // Event Listener: Data Clearing
         clearBtn.addEventListener('click', function() {
-            if (confirm("Are you certain? This will irrevocably delete your localized dataset for all roles and reset the hero database.")) {
+            if (confirm("Are you certain? This will irrevocably delete your localized dataset, heroes, and icons for all roles.")) {
                 matchData = [];
                 heroDB = { 'Clash Lane': [], 'Jungle': [], 'Midlane': [], 'ADC': [], 'Roamer': [] };
+                heroImages = {};
+                
                 localStorage.removeItem('matchupDataV2');
                 localStorage.removeItem('heroDB');
+                localStorage.removeItem('heroImages');
+                
                 updateDatalist();
                 renderMatrix();
-                showStatus('Dataset and Hero Database cleared.', true);
+                showStatus('Dataset, Hero Database, and Icons cleared.', true);
             }
         });
 
-        // Export Data Logic
+        // Export Data Logic (Updated to include Images)
         function exportData() {
-            const dataToExport = { matchData: matchData, heroDB: heroDB };
+            const dataToExport = { matchData: matchData, heroDB: heroDB, heroImages: heroImages };
             const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -285,7 +367,7 @@
             URL.revokeObjectURL(url);
         }
 
-        // Import Data Logic
+        // Import Data Logic (Updated to include Images)
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -297,13 +379,15 @@
                     if (importedData.matchData && importedData.heroDB) {
                         matchData = importedData.matchData;
                         heroDB = importedData.heroDB;
+                        heroImages = importedData.heroImages || {}; // Fallback if old backup version
                         
                         localStorage.setItem('matchupDataV2', JSON.stringify(matchData));
                         localStorage.setItem('heroDB', JSON.stringify(heroDB));
+                        localStorage.setItem('heroImages', JSON.stringify(heroImages));
                         
                         updateDatalist();
                         renderMatrix();
-                        showStatus('Data successfully imported and restored!');
+                        showStatus('Data and Icons successfully imported and restored!');
                     } else {
                         showStatus('Error: Invalid backup file format.', true);
                     }
@@ -312,8 +396,17 @@
                 }
             };
             reader.readAsText(file);
-            // Reset file input so the same file can be uploaded again if needed
             event.target.value = '';
+        }
+
+        // Helper: Returns image HTML if mapped, otherwise plain text name
+        function getHeroLabel(heroName) {
+            if (heroImages[heroName]) {
+                return `<div class="flex items-center justify-center w-full h-full" title="${heroName}">
+                            <img src="${heroImages[heroName]}" alt="${heroName}" class="w-10 h-10 object-cover rounded shadow-md border border-gray-500">
+                        </div>`;
+            }
+            return `<span title="${heroName}">${heroName}</span>`;
         }
 
         // Matrix Generation Logic
@@ -332,15 +425,17 @@
             const sortedHeroes = [...roleHeroes].sort();
 
             let tableHTML = '<table class="w-full border-collapse"><thead><tr>';
-            tableHTML += '<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563]">My Pick \\ Enemy</th>';
+            tableHTML += '<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563] text-sm text-gray-400 font-normal">My Pick \\ Enemy</th>';
             
+            // X-Axis Headers
             sortedHeroes.forEach(hero => {
-                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600">${hero}</th>`;
+                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600 p-2 min-w-[80px] h-[60px]">${getHeroLabel(hero)}</th>`;
             });
             tableHTML += '</tr></thead><tbody>';
 
+            // Y-Axis Rows and Data Generation
             sortedHeroes.forEach(myHero => {
-                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 text-left px-4 border-gray-600 shadow-[2px_0_0_#4b5563]">${myHero}</th>`;
+                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 text-center px-2 py-2 border-gray-600 shadow-[2px_0_0_#4b5563] min-w-[80px] h-[60px]">${getHeroLabel(myHero)}</th>`;
                 
                 sortedHeroes.forEach(enemyHero => {
                     const subset = roleMatchData.filter(d => d.myPick === myHero && d.enemyPick === enemyHero);
