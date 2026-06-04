@@ -12,14 +12,8 @@
         .cell-bad { background-color: #7f1d1d; color: #fca5a5; font-weight: 600; }  
         .cell-empty { background-color: #1f2937; color: #6b7280; }                 
         
-        /* Reset Table Cells to let inner DIVs control sizing */
-        th, td { 
-            border: 1px solid #4b5563; 
-            text-align: center; 
-            padding: 0; 
-            vertical-align: middle;
-        }
-        th { font-weight: bold; color: #f3f4f6; }       
+        th, td { border: 1px solid #4b5563; text-align: center; min-width: 80px; height: 60px; padding: 4px; }
+        th { background-color: #374151; font-weight: bold; color: #f3f4f6; }       
         
         /* Tab transitions */
         .tab-content { display: none; }
@@ -113,50 +107,25 @@
                     <div id="statusMessage" class="h-6 text-sm font-medium text-center transition-opacity opacity-0"></div>
                 </form>
 
-                <div class="flex flex-col md:flex-row gap-6 mt-8 pt-6 border-t border-gray-700 max-w-2xl">
-                    <div class="flex-1">
-                        <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Map Hero Icons</h3>
-                        <div class="flex gap-2">
-                            <select id="heroImageSelect" class="flex-1 bg-gray-700 border border-gray-600 text-white text-sm rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none">
-                                <option value="" disabled selected>Select hero...</option>
-                            </select>
-                            <button type="button" onclick="document.getElementById('imageUploadFile').click()" class="border border-purple-600 bg-purple-900/30 hover:bg-purple-900/60 text-purple-300 text-sm font-medium py-2 px-4 rounded transition-colors whitespace-nowrap">
-                                + Add Image
-                            </button>
-                            <input type="file" id="imageUploadFile" class="hidden" accept="image/*" onchange="handleImageUpload(event)">
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">Replaces names in the matrix. Uploaded images are auto-compressed.</p>
+                <div class="max-w-md mt-8 pt-6 border-t border-gray-700">
+                    <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Database Management</h3>
+                    <div class="flex gap-4">
+                        <button type="button" onclick="exportData()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
+                            Export Backup
+                        </button>
+                        <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
+                            Import Backup
+                        </button>
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
                     </div>
-
-                    <div class="flex-1">
-                        <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Database Backup</h3>
-                        <div class="flex gap-2">
-                            <button type="button" onclick="exportData()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
-                                Export Backup
-                            </button>
-                            <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
-                                Import Backup
-                            </button>
-                            <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">Exports records, hero database, and custom icons.</p>
-                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Export your data before moving or updating HTML files to prevent data loss.</p>
                 </div>
-                
             </div>
 
             <div id="tab-matrix" class="tab-content h-full flex flex-col">
-                <div class="flex justify-between items-end mb-4 gap-4 flex-wrap">
-                    <div>
-                        <h2 class="text-xl font-semibold text-white" id="matrixTitle">Matchup Matrix</h2>
-                        <p class="text-sm text-gray-400">Row = My Pick, Column = Enemy Pick</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <label for="enemyFilter" class="text-sm font-medium text-gray-400">Filter Enemy:</label>
-                        <select id="enemyFilter" class="bg-gray-700 border border-gray-600 text-white rounded px-3 py-1.5 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-shadow text-sm min-w-[150px]">
-                            <option value="">All Enemies</option>
-                        </select>
-                    </div>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-white" id="matrixTitle">Matchup Matrix</h2>
+                    <p class="text-sm text-gray-400">Row = My Pick, Column = Enemy Pick</p>
                 </div>
                 <div class="overflow-auto flex-1 border border-gray-700 rounded bg-gray-800">
                     <div id="matrixContainer" class="min-w-max">
@@ -168,11 +137,12 @@
     </div>
 
     <script>
+        // System State Initialization
         let matchData = JSON.parse(localStorage.getItem('matchupDataV2')) || [];
+        
         let heroDB = JSON.parse(localStorage.getItem('heroDB')) || {
             'Clash Lane': [], 'Jungle': [], 'Midlane': [], 'ADC': [], 'Roamer': []
         };
-        let heroImages = JSON.parse(localStorage.getItem('heroImages')) || {};
 
         const form = document.getElementById('matchupForm');
         const clearBtn = document.getElementById('clearData');
@@ -180,21 +150,22 @@
         const statusMessage = document.getElementById('statusMessage');
         const roleSelector = document.getElementById('globalRole');
         const heroDatalist = document.getElementById('heroDatabaseList');
-        const heroImageSelect = document.getElementById('heroImageSelect');
-        const enemyFilter = document.getElementById('enemyFilter');
         const matrixTitle = document.getElementById('matrixTitle');
 
         const myPickInput = document.getElementById('myPick');
         const enemyPickInput = document.getElementById('enemyPick');
 
+        // Initialize Application State
         updateDatalist();
         renderMatrix();
 
+        // Standardize Name Capitalization
         function formatName(name) {
             if (!name) return '';
             return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
         }
 
+        // Event Listener: Role Selection Change
         roleSelector.addEventListener('change', function() {
             updateDatalist();
             renderMatrix();
@@ -202,8 +173,7 @@
             enemyPickInput.value = '';
         });
 
-        enemyFilter.addEventListener('change', renderMatrix);
-
+        // Tab Navigation Logic
         function switchTab(targetId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.getElementById(targetId).classList.add('active');
@@ -218,34 +188,27 @@
             if (targetId === 'tab-matrix') renderMatrix();
         }
 
+        // Display temporary status messages
         function showStatus(message, isError = false) {
             statusMessage.textContent = message;
             statusMessage.className = `h-6 text-sm font-medium text-center transition-opacity opacity-100 ${isError ? 'text-red-400' : 'text-green-400'}`;
             setTimeout(() => { statusMessage.classList.replace('opacity-100', 'opacity-0'); }, 3000);
         }
 
+        // Updates the HTML <datalist> with heroes specific to the currently selected role
         function updateDatalist() {
             const currentRole = roleSelector.value;
             const heroes = heroDB[currentRole] || [];
             
             heroDatalist.innerHTML = '';
-            heroImageSelect.innerHTML = '<option value="" disabled selected>Select hero...</option>';
-            
-            // Retain current filter selection if applicable
-            const currentFilterValue = enemyFilter.value;
-            enemyFilter.innerHTML = '<option value="">All Enemies</option>';
-            
             heroes.sort().forEach(hero => {
-                const dlOption = document.createElement('option'); dlOption.value = hero; heroDatalist.appendChild(dlOption);
-                const selOption = document.createElement('option'); selOption.value = hero; selOption.textContent = hero; heroImageSelect.appendChild(selOption);
-                const filterOption = document.createElement('option'); filterOption.value = hero; filterOption.textContent = hero; enemyFilter.appendChild(filterOption);
+                const option = document.createElement('option');
+                option.value = hero;
+                heroDatalist.appendChild(option);
             });
-
-            if (heroes.includes(currentFilterValue)) {
-                enemyFilter.value = currentFilterValue;
-            }
         }
 
+        // Append new heroes to the database dynamically
         function ensureHeroInDatabase(role, heroName) {
             if (!heroName) return;
             const formattedName = formatName(heroName);
@@ -256,54 +219,11 @@
             }
         }
 
+        // Immediately register heroes when typing finishes, so the other box can access it
         myPickInput.addEventListener('blur', function() { ensureHeroInDatabase(roleSelector.value, this.value.trim()); });
         enemyPickInput.addEventListener('blur', function() { ensureHeroInDatabase(roleSelector.value, this.value.trim()); });
 
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            const heroName = heroImageSelect.value;
-            
-            if (!file) return;
-            if (!heroName) {
-                showStatus('Please select a hero from the dropdown first.', true);
-                event.target.value = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 256;
-                    const MAX_HEIGHT = 256;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                    } else {
-                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                    }
-                    
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                    
-                    heroImages[heroName] = compressedDataUrl;
-                    localStorage.setItem('heroImages', JSON.stringify(heroImages));
-                    showStatus(`Icon successfully mapped for ${heroName}`);
-                    renderMatrix();
-                }
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-            event.target.value = ''; 
-        }
-
+        // Event Listener: Form Submission
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -332,28 +252,28 @@
             
             showStatus(`Logged [${currentRole}]: ${payload.myPick} vs ${payload.enemyPick}`);
             
+            // Only clear the result selection to allow rapid repeated entry of the same matchup
             document.querySelectorAll('input[name="matchResult"]').forEach(rb => rb.checked = false);
+            
             renderMatrix();
         });
 
+        // Event Listener: Data Clearing
         clearBtn.addEventListener('click', function() {
-            if (confirm("Are you certain? This will irrevocably delete your localized dataset, heroes, and icons for all roles.")) {
+            if (confirm("Are you certain? This will irrevocably delete your localized dataset for all roles and reset the hero database.")) {
                 matchData = [];
                 heroDB = { 'Clash Lane': [], 'Jungle': [], 'Midlane': [], 'ADC': [], 'Roamer': [] };
-                heroImages = {};
-                
                 localStorage.removeItem('matchupDataV2');
                 localStorage.removeItem('heroDB');
-                localStorage.removeItem('heroImages');
-                
                 updateDatalist();
                 renderMatrix();
-                showStatus('Dataset, Hero Database, and Icons cleared.', true);
+                showStatus('Dataset and Hero Database cleared.', true);
             }
         });
 
+        // Export Data Logic
         function exportData() {
-            const dataToExport = { matchData: matchData, heroDB: heroDB, heroImages: heroImages };
+            const dataToExport = { matchData: matchData, heroDB: heroDB };
             const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -365,6 +285,7 @@
             URL.revokeObjectURL(url);
         }
 
+        // Import Data Logic
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -376,15 +297,13 @@
                     if (importedData.matchData && importedData.heroDB) {
                         matchData = importedData.matchData;
                         heroDB = importedData.heroDB;
-                        heroImages = importedData.heroImages || {}; 
                         
                         localStorage.setItem('matchupDataV2', JSON.stringify(matchData));
                         localStorage.setItem('heroDB', JSON.stringify(heroDB));
-                        localStorage.setItem('heroImages', JSON.stringify(heroImages));
                         
                         updateDatalist();
                         renderMatrix();
-                        showStatus('Data and Icons successfully imported and restored!');
+                        showStatus('Data successfully imported and restored!');
                     } else {
                         showStatus('Error: Invalid backup file format.', true);
                     }
@@ -393,22 +312,13 @@
                 }
             };
             reader.readAsText(file);
+            // Reset file input so the same file can be uploaded again if needed
             event.target.value = '';
         }
 
-        // Standardized 100x100 for all header cells. object-cover forces the image to perfectly flush-fill the box.
-        function getHeroLabel(heroName) {
-            if (heroImages[heroName]) {
-                return `<div class="w-[100px] h-[100px] flex items-center justify-center overflow-hidden bg-gray-800"><img src="${heroImages[heroName]}" alt="${heroName}" title="${heroName}" class="w-full h-full object-cover block m-0"></div>`;
-            }
-            return `<div class="flex items-center justify-center w-[100px] h-[100px] p-2 whitespace-normal break-words leading-tight overflow-hidden text-gray-200" title="${heroName}">
-                        <span class="text-xs md:text-sm drop-shadow-md">${heroName}</span>
-                    </div>`;
-        }
-
+        // Matrix Generation Logic
         function renderMatrix() {
             const currentRole = roleSelector.value;
-            const filterValue = enemyFilter.value;
             matrixTitle.textContent = `${currentRole} Matrix`;
 
             const roleMatchData = matchData.filter(d => d.role === currentRole);
@@ -420,31 +330,24 @@
             }
 
             const sortedHeroes = [...roleHeroes].sort();
-            
-            // If filter is active, only render that specific enemy's column. Otherwise, render all.
-            const columnsToRender = filterValue ? [filterValue] : sortedHeroes;
 
-            let tableHTML = '<table class="w-max border-collapse"><thead><tr>';
+            let tableHTML = '<table class="w-full border-collapse"><thead><tr>';
+            tableHTML += '<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563]">My Pick \\ Enemy</th>';
             
-            // Top Left Corner - Now uniformly 100x100 to keep the grid perfect
-            tableHTML += `<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563] text-[10px] sm:text-xs text-gray-400 font-normal p-0">
-                            <div class="flex items-center justify-center w-[100px] h-[100px] px-1 text-center leading-tight">My Pick \\<br>Enemy</div>
-                          </th>`;
-            
-            columnsToRender.forEach(hero => {
-                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600 p-0">${getHeroLabel(hero)}</th>`;
+            sortedHeroes.forEach(hero => {
+                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600">${hero}</th>`;
             });
             tableHTML += '</tr></thead><tbody>';
 
             sortedHeroes.forEach(myHero => {
-                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 border-gray-600 shadow-[2px_0_0_#4b5563] p-0">${getHeroLabel(myHero)}</th>`;
+                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 text-left px-4 border-gray-600 shadow-[2px_0_0_#4b5563]">${myHero}</th>`;
                 
-                columnsToRender.forEach(enemyHero => {
+                sortedHeroes.forEach(enemyHero => {
                     const subset = roleMatchData.filter(d => d.myPick === myHero && d.enemyPick === enemyHero);
                     const totalMatches = subset.length;
                     
                     if (totalMatches === 0) {
-                        tableHTML += `<td class="cell-empty p-0"><div class="w-[100px] h-[100px] flex items-center justify-center">-</div></td>`;
+                        tableHTML += `<td class="cell-empty">-</td>`;
                     } else {
                         const wins = subset.filter(d => d.result === 'win').length;
                         const winRate = (wins / totalMatches) * 100;
@@ -453,11 +356,9 @@
                         if (winRate >= 55) cssClass = 'cell-good';
                         if (winRate <= 45) cssClass = 'cell-bad';
 
-                        tableHTML += `<td class="${cssClass} p-0">
-                            <div class="flex flex-col items-center justify-center w-[100px] h-[100px] overflow-hidden">
-                                <div class="text-lg sm:text-xl font-bold leading-none mb-1">${Math.round(winRate)}%</div>
-                                <div class="text-[11px] font-normal opacity-75 leading-none">${wins}W - ${totalMatches - wins}L</div>
-                            </div>
+                        tableHTML += `<td class="${cssClass}">
+                            <div class="text-lg">${Math.round(winRate)}%</div>
+                            <div class="text-xs font-normal opacity-75">${wins}W - ${totalMatches - wins}L</div>
                         </td>`;
                     }
                 });
