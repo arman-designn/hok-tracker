@@ -146,9 +146,17 @@
             </div>
 
             <div id="tab-matrix" class="tab-content h-full flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-white" id="matrixTitle">Matchup Matrix</h2>
-                    <p class="text-sm text-gray-400">Row = My Pick, Column = Enemy Pick</p>
+                <div class="flex justify-between items-end mb-4 gap-4 flex-wrap">
+                    <div>
+                        <h2 class="text-xl font-semibold text-white" id="matrixTitle">Matchup Matrix</h2>
+                        <p class="text-sm text-gray-400">Row = My Pick, Column = Enemy Pick</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <label for="enemyFilter" class="text-sm font-medium text-gray-400">Filter Enemy:</label>
+                        <select id="enemyFilter" class="bg-gray-700 border border-gray-600 text-white rounded px-3 py-1.5 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-shadow text-sm min-w-[150px]">
+                            <option value="">All Enemies</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="overflow-auto flex-1 border border-gray-700 rounded bg-gray-800">
                     <div id="matrixContainer" class="min-w-max">
@@ -173,6 +181,7 @@
         const roleSelector = document.getElementById('globalRole');
         const heroDatalist = document.getElementById('heroDatabaseList');
         const heroImageSelect = document.getElementById('heroImageSelect');
+        const enemyFilter = document.getElementById('enemyFilter');
         const matrixTitle = document.getElementById('matrixTitle');
 
         const myPickInput = document.getElementById('myPick');
@@ -192,6 +201,8 @@
             myPickInput.value = '';
             enemyPickInput.value = '';
         });
+
+        enemyFilter.addEventListener('change', renderMatrix);
 
         function switchTab(targetId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -220,16 +231,19 @@
             heroDatalist.innerHTML = '';
             heroImageSelect.innerHTML = '<option value="" disabled selected>Select hero...</option>';
             
+            // Retain current filter selection if applicable
+            const currentFilterValue = enemyFilter.value;
+            enemyFilter.innerHTML = '<option value="">All Enemies</option>';
+            
             heroes.sort().forEach(hero => {
-                const dlOption = document.createElement('option');
-                dlOption.value = hero;
-                heroDatalist.appendChild(dlOption);
-
-                const selOption = document.createElement('option');
-                selOption.value = hero;
-                selOption.textContent = hero;
-                heroImageSelect.appendChild(selOption);
+                const dlOption = document.createElement('option'); dlOption.value = hero; heroDatalist.appendChild(dlOption);
+                const selOption = document.createElement('option'); selOption.value = hero; selOption.textContent = hero; heroImageSelect.appendChild(selOption);
+                const filterOption = document.createElement('option'); filterOption.value = hero; filterOption.textContent = hero; enemyFilter.appendChild(filterOption);
             });
+
+            if (heroes.includes(currentFilterValue)) {
+                enemyFilter.value = currentFilterValue;
+            }
         }
 
         function ensureHeroInDatabase(role, heroName) {
@@ -261,7 +275,6 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    // Increased to 256 for crisper HD resolution inside the larger 100x100 grid cells
                     const MAX_WIDTH = 256;
                     const MAX_HEIGHT = 256;
                     let width = img.width;
@@ -383,20 +396,19 @@
             event.target.value = '';
         }
 
-        // Helper: Returns strict larger div wrapper to prevent layout panics
-        function getHeroLabel(heroName, isRowHeader = false) {
-            const widthClass = isRowHeader ? 'w-[120px]' : 'w-[100px]';
+        // Standardized 100x100 for all header cells. object-cover forces the image to perfectly flush-fill the box.
+        function getHeroLabel(heroName) {
             if (heroImages[heroName]) {
-                // Switched to object-contain to prevent cutoff, and added bg-gray-800 to frame unusual aspect ratios cleanly
-                return `<div class="${widthClass} h-[100px] bg-gray-800 flex items-center justify-center overflow-hidden"><img src="${heroImages[heroName]}" alt="${heroName}" title="${heroName}" class="w-full h-full object-contain block m-0"></div>`;
+                return `<div class="w-[100px] h-[100px] flex items-center justify-center overflow-hidden bg-gray-800"><img src="${heroImages[heroName]}" alt="${heroName}" title="${heroName}" class="w-full h-full object-cover block m-0"></div>`;
             }
-            return `<div class="flex items-center justify-center ${widthClass} h-[100px] p-2 whitespace-normal break-words leading-tight overflow-hidden text-gray-200" title="${heroName}">
+            return `<div class="flex items-center justify-center w-[100px] h-[100px] p-2 whitespace-normal break-words leading-tight overflow-hidden text-gray-200" title="${heroName}">
                         <span class="text-xs md:text-sm drop-shadow-md">${heroName}</span>
                     </div>`;
         }
 
         function renderMatrix() {
             const currentRole = roleSelector.value;
+            const filterValue = enemyFilter.value;
             matrixTitle.textContent = `${currentRole} Matrix`;
 
             const roleMatchData = matchData.filter(d => d.role === currentRole);
@@ -408,22 +420,26 @@
             }
 
             const sortedHeroes = [...roleHeroes].sort();
+            
+            // If filter is active, only render that specific enemy's column. Otherwise, render all.
+            const columnsToRender = filterValue ? [filterValue] : sortedHeroes;
 
             let tableHTML = '<table class="w-max border-collapse"><thead><tr>';
             
+            // Top Left Corner - Now uniformly 100x100 to keep the grid perfect
             tableHTML += `<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563] text-[10px] sm:text-xs text-gray-400 font-normal p-0">
-                            <div class="flex items-center justify-center w-[120px] h-[100px] px-2">My Pick \\ Enemy</div>
+                            <div class="flex items-center justify-center w-[100px] h-[100px] px-1 text-center leading-tight">My Pick \\<br>Enemy</div>
                           </th>`;
             
-            sortedHeroes.forEach(hero => {
-                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600 p-0">${getHeroLabel(hero, false)}</th>`;
+            columnsToRender.forEach(hero => {
+                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600 p-0">${getHeroLabel(hero)}</th>`;
             });
             tableHTML += '</tr></thead><tbody>';
 
             sortedHeroes.forEach(myHero => {
-                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 border-gray-600 shadow-[2px_0_0_#4b5563] p-0">${getHeroLabel(myHero, true)}</th>`;
+                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 border-gray-600 shadow-[2px_0_0_#4b5563] p-0">${getHeroLabel(myHero)}</th>`;
                 
-                sortedHeroes.forEach(enemyHero => {
+                columnsToRender.forEach(enemyHero => {
                     const subset = roleMatchData.filter(d => d.myPick === myHero && d.enemyPick === enemyHero);
                     const totalMatches = subset.length;
                     
