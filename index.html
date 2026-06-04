@@ -12,19 +12,14 @@
         .cell-bad { background-color: #7f1d1d; color: #fca5a5; font-weight: 600; }  
         .cell-empty { background-color: #1f2937; color: #6b7280; }                 
         
-        /* Standardized Grid Cells */
+        /* Reset Table Cells to let inner DIVs control sizing */
         th, td { 
             border: 1px solid #4b5563; 
             text-align: center; 
-            width: 80px; 
-            min-width: 80px; 
-            max-width: 80px; 
-            height: 80px; 
-            padding: 0; 
-            overflow: hidden;
+            padding: 0; /* Important: removes padding so inner div sits flush */
             vertical-align: middle;
         }
-        th { background-color: #374151; font-weight: bold; color: #f3f4f6; }       
+        th { font-weight: bold; color: #f3f4f6; }       
         
         /* Tab transitions */
         .tab-content { display: none; }
@@ -165,7 +160,6 @@
     </div>
 
     <script>
-        // System State Initialization
         let matchData = JSON.parse(localStorage.getItem('matchupDataV2')) || [];
         let heroDB = JSON.parse(localStorage.getItem('heroDB')) || {
             'Clash Lane': [], 'Jungle': [], 'Midlane': [], 'ADC': [], 'Roamer': []
@@ -388,12 +382,13 @@
             event.target.value = '';
         }
 
-        // Helper: Returns absolute positioned image OR centered text wrapper
-        function getHeroLabel(heroName) {
+        // Helper: Returns strict 80x80 (w-20 h-20) or 100x80 div wrapper to prevent table layout panics
+        function getHeroLabel(heroName, isRowHeader = false) {
+            const widthClass = isRowHeader ? 'w-[100px]' : 'w-20';
             if (heroImages[heroName]) {
-                return `<img src="${heroImages[heroName]}" alt="${heroName}" title="${heroName}" class="w-full h-full object-cover block m-0">`;
+                return `<div class="${widthClass} h-20 overflow-hidden"><img src="${heroImages[heroName]}" alt="${heroName}" title="${heroName}" class="w-full h-full object-cover block m-0"></div>`;
             }
-            return `<div class="flex items-center justify-center w-full h-full p-2 whitespace-normal break-words leading-tight" title="${heroName}">
+            return `<div class="flex items-center justify-center ${widthClass} h-20 p-2 whitespace-normal break-words leading-tight overflow-hidden text-gray-200" title="${heroName}">
                         <span class="text-xs md:text-sm drop-shadow-md">${heroName}</span>
                     </div>`;
         }
@@ -412,30 +407,27 @@
 
             const sortedHeroes = [...roleHeroes].sort();
 
-            // Using table-fixed to force absolute column widths
-            let tableHTML = '<table class="w-full border-collapse table-fixed"><thead><tr>';
+            // Swapped from w-full table-fixed to w-max to allow standard block construction
+            let tableHTML = '<table class="w-max border-collapse"><thead><tr>';
             
-            // Top Left Corner Cell (wider to fit text)
-            tableHTML += `<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563] text-[10px] sm:text-xs text-gray-400 font-normal" style="width: 100px; min-width: 100px; max-width: 100px;">
-                            My Pick \\ Enemy
+            tableHTML += `<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563] text-[10px] sm:text-xs text-gray-400 font-normal p-0">
+                            <div class="flex items-center justify-center w-[100px] h-20 px-2">My Pick \\ Enemy</div>
                           </th>`;
             
-            // X-Axis Headers
             sortedHeroes.forEach(hero => {
-                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600 p-0">${getHeroLabel(hero)}</th>`;
+                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600 p-0">${getHeroLabel(hero, false)}</th>`;
             });
             tableHTML += '</tr></thead><tbody>';
 
-            // Y-Axis Rows and Data Generation
             sortedHeroes.forEach(myHero => {
-                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 border-gray-600 shadow-[2px_0_0_#4b5563] p-0" style="width: 100px; min-width: 100px; max-width: 100px;">${getHeroLabel(myHero)}</th>`;
+                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 border-gray-600 shadow-[2px_0_0_#4b5563] p-0">${getHeroLabel(myHero, true)}</th>`;
                 
                 sortedHeroes.forEach(enemyHero => {
                     const subset = roleMatchData.filter(d => d.myPick === myHero && d.enemyPick === enemyHero);
                     const totalMatches = subset.length;
                     
                     if (totalMatches === 0) {
-                        tableHTML += `<td class="cell-empty">-</td>`;
+                        tableHTML += `<td class="cell-empty p-0"><div class="w-20 h-20 flex items-center justify-center">-</div></td>`;
                     } else {
                         const wins = subset.filter(d => d.result === 'win').length;
                         const winRate = (wins / totalMatches) * 100;
@@ -444,8 +436,8 @@
                         if (winRate >= 55) cssClass = 'cell-good';
                         if (winRate <= 45) cssClass = 'cell-bad';
 
-                        tableHTML += `<td class="${cssClass}">
-                            <div class="flex flex-col items-center justify-center h-full w-full">
+                        tableHTML += `<td class="${cssClass} p-0">
+                            <div class="flex flex-col items-center justify-center w-20 h-20 overflow-hidden">
                                 <div class="text-base sm:text-lg font-bold leading-none mb-1">${Math.round(winRate)}%</div>
                                 <div class="text-[10px] font-normal opacity-75 leading-none">${wins}W - ${totalMatches - wins}L</div>
                             </div>
