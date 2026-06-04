@@ -16,7 +16,7 @@
         th, td { 
             border: 1px solid #4b5563; 
             text-align: center; 
-            padding: 0; /* Important: removes padding so inner div sits flush */
+            padding: 0; 
             vertical-align: middle;
         }
         th { font-weight: bold; color: #f3f4f6; }       
@@ -261,8 +261,9 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 120;
-                    const MAX_HEIGHT = 120;
+                    // Increased to 256 for crisper HD resolution inside the larger 100x100 grid cells
+                    const MAX_WIDTH = 256;
+                    const MAX_HEIGHT = 256;
                     let width = img.width;
                     let height = img.height;
 
@@ -382,13 +383,14 @@
             event.target.value = '';
         }
 
-        // Helper: Returns strict 80x80 (w-20 h-20) or 100x80 div wrapper to prevent table layout panics
+        // Helper: Returns strict larger div wrapper to prevent layout panics
         function getHeroLabel(heroName, isRowHeader = false) {
-            const widthClass = isRowHeader ? 'w-[100px]' : 'w-20';
+            const widthClass = isRowHeader ? 'w-[120px]' : 'w-[100px]';
             if (heroImages[heroName]) {
-                return `<div class="${widthClass} h-20 overflow-hidden"><img src="${heroImages[heroName]}" alt="${heroName}" title="${heroName}" class="w-full h-full object-cover block m-0"></div>`;
+                // Switched to object-contain to prevent cutoff, and added bg-gray-800 to frame unusual aspect ratios cleanly
+                return `<div class="${widthClass} h-[100px] bg-gray-800 flex items-center justify-center overflow-hidden"><img src="${heroImages[heroName]}" alt="${heroName}" title="${heroName}" class="w-full h-full object-contain block m-0"></div>`;
             }
-            return `<div class="flex items-center justify-center ${widthClass} h-20 p-2 whitespace-normal break-words leading-tight overflow-hidden text-gray-200" title="${heroName}">
+            return `<div class="flex items-center justify-center ${widthClass} h-[100px] p-2 whitespace-normal break-words leading-tight overflow-hidden text-gray-200" title="${heroName}">
                         <span class="text-xs md:text-sm drop-shadow-md">${heroName}</span>
                     </div>`;
         }
@@ -407,11 +409,10 @@
 
             const sortedHeroes = [...roleHeroes].sort();
 
-            // Swapped from w-full table-fixed to w-max to allow standard block construction
             let tableHTML = '<table class="w-max border-collapse"><thead><tr>';
             
             tableHTML += `<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563] text-[10px] sm:text-xs text-gray-400 font-normal p-0">
-                            <div class="flex items-center justify-center w-[100px] h-20 px-2">My Pick \\ Enemy</div>
+                            <div class="flex items-center justify-center w-[120px] h-[100px] px-2">My Pick \\ Enemy</div>
                           </th>`;
             
             sortedHeroes.forEach(hero => {
@@ -427,7 +428,7 @@
                     const totalMatches = subset.length;
                     
                     if (totalMatches === 0) {
-                        tableHTML += `<td class="cell-empty p-0"><div class="w-20 h-20 flex items-center justify-center">-</div></td>`;
+                        tableHTML += `<td class="cell-empty p-0"><div class="w-[100px] h-[100px] flex items-center justify-center">-</div></td>`;
                     } else {
                         const wins = subset.filter(d => d.result === 'win').length;
                         const winRate = (wins / totalMatches) * 100;
@@ -437,9 +438,9 @@
                         if (winRate <= 45) cssClass = 'cell-bad';
 
                         tableHTML += `<td class="${cssClass} p-0">
-                            <div class="flex flex-col items-center justify-center w-20 h-20 overflow-hidden">
-                                <div class="text-base sm:text-lg font-bold leading-none mb-1">${Math.round(winRate)}%</div>
-                                <div class="text-[10px] font-normal opacity-75 leading-none">${wins}W - ${totalMatches - wins}L</div>
+                            <div class="flex flex-col items-center justify-center w-[100px] h-[100px] overflow-hidden">
+                                <div class="text-lg sm:text-xl font-bold leading-none mb-1">${Math.round(winRate)}%</div>
+                                <div class="text-[11px] font-normal opacity-75 leading-none">${wins}W - ${totalMatches - wins}L</div>
                             </div>
                         </td>`;
                     }
