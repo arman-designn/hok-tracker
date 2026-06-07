@@ -61,65 +61,91 @@
         <div class="flex-1 bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6 relative overflow-hidden">
             
             <div id="tab-log" class="tab-content active h-full overflow-y-auto pr-2">
-                <h2 class="text-xl font-semibold mb-6 text-white">Log New Matchup</h2>
-                
-                <form id="matchupForm" class="max-w-md space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     
-                    <datalist id="heroDatabaseList"></datalist>
+                    <div>
+                        <h2 class="text-xl font-semibold mb-6 text-white">Log New Matchup</h2>
+                        <form id="matchupForm" class="max-w-md space-y-5">
+                            
+                            <datalist id="heroDatabaseList"></datalist>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-1">My Pick (Y-Axis)</label>
+                                <input type="text" id="myPick" list="heroDatabaseList" required autocomplete="off" class="w-full bg-gray-700 border border-gray-600 text-white rounded px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-shadow" placeholder="Select or type a new hero...">
+                            </div>
+                            
+                            <div class="flex items-center justify-center py-2">
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-gray-900 px-3 py-1 rounded-full border border-gray-700">Versus</span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-1">Enemy Pick (X-Axis)</label>
+                                <input type="text" id="enemyPick" list="heroDatabaseList" required autocomplete="off" class="w-full bg-gray-700 border border-gray-600 text-white rounded px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-shadow" placeholder="Select or type a new hero...">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-1">Result</label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="matchResult" value="win" class="peer sr-only" required>
+                                        <div class="text-center px-4 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-green-900 peer-checked:border-green-500 peer-checked:text-green-300 text-gray-300 font-semibold transition-colors">Win</div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="matchResult" value="loss" class="peer sr-only">
+                                        <div class="text-center px-4 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-red-900 peer-checked:border-red-500 peer-checked:text-red-300 text-gray-300 font-semibold transition-colors">Loss</div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 flex gap-4">
+                                <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded transition-colors shadow-md">
+                                    Append Data
+                                </button>
+                                <button type="button" id="clearData" class="text-red-400 border border-red-900 hover:bg-red-900/30 font-medium py-3 px-6 rounded transition-colors" title="Delete all local data">
+                                    Clear Data
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">My Pick (Y-Axis)</label>
-                        <input type="text" id="myPick" list="heroDatabaseList" required autocomplete="off" class="w-full bg-gray-700 border border-gray-600 text-white rounded px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-shadow" placeholder="Select or type a new hero...">
-                    </div>
-                    
-                    <div class="flex items-center justify-center py-2">
-                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-gray-900 px-3 py-1 rounded-full border border-gray-700">Versus</span>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Enemy Pick (X-Axis)</label>
-                        <input type="text" id="enemyPick" list="heroDatabaseList" required autocomplete="off" class="w-full bg-gray-700 border border-gray-600 text-white rounded px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-shadow" placeholder="Select or type a new hero...">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Result</label>
-                        <div class="grid grid-cols-2 gap-4">
-                            <label class="cursor-pointer">
-                                <input type="radio" name="matchResult" value="win" class="peer sr-only" required>
-                                <div class="text-center px-4 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-green-900 peer-checked:border-green-500 peer-checked:text-green-300 text-gray-300 font-semibold transition-colors">Win</div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="matchResult" value="loss" class="peer sr-only">
-                                <div class="text-center px-4 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-red-900 peer-checked:border-red-500 peer-checked:text-red-300 text-gray-300 font-semibold transition-colors">Loss</div>
-                            </label>
+                        <h2 class="text-xl font-semibold mb-6 text-white">Hero Customization</h2>
+                        
+                        <div class="max-w-md bg-gray-900 p-4 rounded border border-gray-700 mb-8">
+                            <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Set Hero Portrait</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-1">Target Hero</label>
+                                    <input type="text" id="portraitHero" list="heroDatabaseList" class="w-full bg-gray-700 border border-gray-600 text-white rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none" placeholder="Select hero...">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-1">Image File (Square recommended)</label>
+                                    <input type="file" id="portraitFile" accept="image/*" class="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-white hover:file:bg-gray-500 cursor-pointer border border-gray-600 bg-gray-700 rounded">
+                                </div>
+                                <button type="button" onclick="savePortrait()" class="w-full bg-gray-700 border border-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded transition-colors shadow-md">
+                                    Upload & Assign Portrait
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="pt-4 flex gap-4">
-                        <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded transition-colors shadow-md">
-                            Append Data
-                        </button>
-                        <button type="button" id="clearData" class="text-red-400 border border-red-900 hover:bg-red-900/30 font-medium py-3 px-6 rounded transition-colors" title="Delete all local data">
-                            Clear Data
-                        </button>
-                    </div>
-                    
-                    <div id="statusMessage" class="h-6 text-sm font-medium text-center transition-opacity opacity-0"></div>
-                </form>
+                        <div class="max-w-md pt-6 border-t border-gray-700">
+                            <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Database Management</h3>
+                            <div class="flex gap-4">
+                                <button type="button" onclick="exportData()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
+                                    Export Backup
+                                </button>
+                                <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
+                                    Import Backup
+                                </button>
+                                <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Export your data to preserve logged matchups and assigned images.</p>
+                        </div>
 
-                <div class="max-w-md mt-8 pt-6 border-t border-gray-700">
-                    <h3 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Database Management</h3>
-                    <div class="flex gap-4">
-                        <button type="button" onclick="exportData()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
-                            Export Backup
-                        </button>
-                        <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 border border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium py-2 px-4 rounded transition-colors">
-                            Import Backup
-                        </button>
-                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Export your data before moving or updating HTML files to prevent data loss.</p>
                 </div>
+                
+                <div id="statusMessage" class="mt-4 h-6 text-sm font-medium text-center transition-opacity opacity-0"></div>
             </div>
 
             <div id="tab-matrix" class="tab-content h-full flex flex-col">
@@ -139,6 +165,7 @@
     <script>
         // System State Initialization
         let matchData = JSON.parse(localStorage.getItem('matchupDataV2')) || [];
+        let heroImages = JSON.parse(localStorage.getItem('heroImages')) || {};
         
         let heroDB = JSON.parse(localStorage.getItem('heroDB')) || {
             'Clash Lane': [], 'Jungle': [], 'Midlane': [], 'ADC': [], 'Roamer': []
@@ -191,7 +218,7 @@
         // Display temporary status messages
         function showStatus(message, isError = false) {
             statusMessage.textContent = message;
-            statusMessage.className = `h-6 text-sm font-medium text-center transition-opacity opacity-100 ${isError ? 'text-red-400' : 'text-green-400'}`;
+            statusMessage.className = `mt-4 h-6 text-sm font-medium text-center transition-opacity opacity-100 ${isError ? 'text-red-400' : 'text-green-400'}`;
             setTimeout(() => { statusMessage.classList.replace('opacity-100', 'opacity-0'); }, 3000);
         }
 
@@ -201,7 +228,10 @@
             const heroes = heroDB[currentRole] || [];
             
             heroDatalist.innerHTML = '';
-            heroes.sort().forEach(hero => {
+            // Use a Set to ensure unique values across roles if cross-pollination happens
+            const uniqueHeroes = [...new Set(Object.values(heroDB).flat())];
+            
+            uniqueHeroes.sort().forEach(hero => {
                 const option = document.createElement('option');
                 option.value = hero;
                 heroDatalist.appendChild(option);
@@ -217,6 +247,46 @@
                 localStorage.setItem('heroDB', JSON.stringify(heroDB));
                 updateDatalist(); 
             }
+        }
+
+        // Image Upload & Formatting Logic
+        function savePortrait() {
+            const heroNameRaw = document.getElementById('portraitHero').value.trim();
+            const fileInput = document.getElementById('portraitFile');
+            
+            if (!heroNameRaw) {
+                showStatus('Please specify a target hero.', true);
+                return;
+            }
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showStatus('Please select an image file.', true);
+                return;
+            }
+
+            const heroName = formatName(heroNameRaw);
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                heroImages[heroName] = e.target.result; // Saves as Base64 Data URL
+                localStorage.setItem('heroImages', JSON.stringify(heroImages));
+                
+                // Ensure hero exists in DB context just in case
+                ensureHeroInDatabase(roleSelector.value, heroName);
+                
+                showStatus(`Portrait successfully assigned to ${heroName}.`);
+                renderMatrix();
+                
+                // Reset inputs
+                document.getElementById('portraitHero').value = '';
+                fileInput.value = '';
+            };
+
+            reader.onerror = function() {
+                showStatus('Error processing image file.', true);
+            };
+            
+            reader.readAsDataURL(file);
         }
 
         // Immediately register heroes when typing finishes, so the other box can access it
@@ -252,7 +322,6 @@
             
             showStatus(`Logged [${currentRole}]: ${payload.myPick} vs ${payload.enemyPick}`);
             
-            // Only clear the result selection to allow rapid repeated entry of the same matchup
             document.querySelectorAll('input[name="matchResult"]').forEach(rb => rb.checked = false);
             
             renderMatrix();
@@ -260,20 +329,22 @@
 
         // Event Listener: Data Clearing
         clearBtn.addEventListener('click', function() {
-            if (confirm("Are you certain? This will irrevocably delete your localized dataset for all roles and reset the hero database.")) {
+            if (confirm("Are you certain? This will irrevocably delete your localized dataset, hero database, and assigned portraits.")) {
                 matchData = [];
+                heroImages = {};
                 heroDB = { 'Clash Lane': [], 'Jungle': [], 'Midlane': [], 'ADC': [], 'Roamer': [] };
                 localStorage.removeItem('matchupDataV2');
                 localStorage.removeItem('heroDB');
+                localStorage.removeItem('heroImages');
                 updateDatalist();
                 renderMatrix();
-                showStatus('Dataset and Hero Database cleared.', true);
+                showStatus('Dataset, Hero Database, and Portraits cleared.', true);
             }
         });
 
-        // Export Data Logic
+        // Export Data Logic (Updated to include images)
         function exportData() {
-            const dataToExport = { matchData: matchData, heroDB: heroDB };
+            const dataToExport = { matchData: matchData, heroDB: heroDB, heroImages: heroImages };
             const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -285,7 +356,7 @@
             URL.revokeObjectURL(url);
         }
 
-        // Import Data Logic
+        // Import Data Logic (Updated to include images)
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -297,9 +368,11 @@
                     if (importedData.matchData && importedData.heroDB) {
                         matchData = importedData.matchData;
                         heroDB = importedData.heroDB;
+                        heroImages = importedData.heroImages || {}; // Fallback for older backups
                         
                         localStorage.setItem('matchupDataV2', JSON.stringify(matchData));
                         localStorage.setItem('heroDB', JSON.stringify(heroDB));
+                        localStorage.setItem('heroImages', JSON.stringify(heroImages));
                         
                         updateDatalist();
                         renderMatrix();
@@ -312,8 +385,20 @@
                 }
             };
             reader.readAsText(file);
-            // Reset file input so the same file can be uploaded again if needed
             event.target.value = '';
+        }
+
+        // Header Formatting Helper
+        function generateHeroHeaderHTML(heroName) {
+            const imgSrc = heroImages[heroName];
+            if (imgSrc) {
+                return `
+                <div class="flex flex-col items-center justify-center p-1 space-y-1 w-full">
+                    <img src="${imgSrc}" class="w-12 h-12 object-cover rounded shadow-md border border-gray-500 bg-gray-800" alt="${heroName}" title="${heroName}">
+                    <span class="text-xs font-semibold truncate w-full px-1">${heroName}</span>
+                </div>`;
+            }
+            return `<span class="px-2">${heroName}</span>`;
         }
 
         // Matrix Generation Logic
@@ -335,12 +420,12 @@
             tableHTML += '<th class="sticky top-0 left-0 z-20 bg-gray-800 border-gray-600 shadow-[2px_2px_0_#4b5563]">My Pick \\ Enemy</th>';
             
             sortedHeroes.forEach(hero => {
-                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600">${hero}</th>`;
+                tableHTML += `<th class="sticky top-0 z-10 bg-gray-700 border-gray-600 min-w-[90px]">${generateHeroHeaderHTML(hero)}</th>`;
             });
             tableHTML += '</tr></thead><tbody>';
 
             sortedHeroes.forEach(myHero => {
-                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 text-left px-4 border-gray-600 shadow-[2px_0_0_#4b5563]">${myHero}</th>`;
+                tableHTML += `<tr><th class="sticky left-0 z-10 bg-gray-700 text-center border-gray-600 shadow-[2px_0_0_#4b5563] min-w-[90px]">${generateHeroHeaderHTML(myHero)}</th>`;
                 
                 sortedHeroes.forEach(enemyHero => {
                     const subset = roleMatchData.filter(d => d.myPick === myHero && d.enemyPick === enemyHero);
