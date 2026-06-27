@@ -85,14 +85,18 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Result</label>
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-3 gap-3">
                                     <label class="cursor-pointer">
                                         <input type="radio" name="matchResult" value="win" class="peer sr-only" required>
-                                        <div class="text-center px-4 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-green-900 peer-checked:border-green-500 peer-checked:text-green-300 text-gray-300 font-semibold transition-colors">Win</div>
+                                        <div class="text-center px-2 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-green-900 peer-checked:border-green-500 peer-checked:text-green-300 text-gray-300 font-semibold transition-colors">Win</div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="matchResult" value="draw" class="peer sr-only">
+                                        <div class="text-center px-2 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-yellow-900 peer-checked:border-yellow-500 peer-checked:text-yellow-300 text-gray-300 font-semibold transition-colors">Draw</div>
                                     </label>
                                     <label class="cursor-pointer">
                                         <input type="radio" name="matchResult" value="loss" class="peer sr-only">
-                                        <div class="text-center px-4 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-red-900 peer-checked:border-red-500 peer-checked:text-red-300 text-gray-300 font-semibold transition-colors">Loss</div>
+                                        <div class="text-center px-2 py-3 border border-gray-600 bg-gray-700 rounded peer-checked:bg-red-900 peer-checked:border-red-500 peer-checked:text-red-300 text-gray-300 font-semibold transition-colors">Loss</div>
                                     </label>
                                 </div>
                             </div>
@@ -320,7 +324,7 @@
             matchData.push(payload);
             localStorage.setItem('matchupDataV2', JSON.stringify(matchData));
             
-            showStatus(`Logged [${currentRole}]: ${payload.myPick} vs ${payload.enemyPick}`);
+            showStatus(`Logged [${currentRole}]: ${payload.myPick} vs ${payload.enemyPick} (${payload.result.toUpperCase()})`);
             
             document.querySelectorAll('input[name="matchResult"]').forEach(rb => rb.checked = false);
             
@@ -342,7 +346,7 @@
             }
         });
 
-        // Export Data Logic (Updated to include images)
+        // Export Data Logic
         function exportData() {
             const dataToExport = { matchData: matchData, heroDB: heroDB, heroImages: heroImages };
             const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: "application/json" });
@@ -356,7 +360,7 @@
             URL.revokeObjectURL(url);
         }
 
-        // Import Data Logic (Updated to include images)
+        // Import Data Logic
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -368,7 +372,7 @@
                     if (importedData.matchData && importedData.heroDB) {
                         matchData = importedData.matchData;
                         heroDB = importedData.heroDB;
-                        heroImages = importedData.heroImages || {}; // Fallback for older backups
+                        heroImages = importedData.heroImages || {};
                         
                         localStorage.setItem('matchupDataV2', JSON.stringify(matchData));
                         localStorage.setItem('heroDB', JSON.stringify(heroDB));
@@ -435,15 +439,20 @@
                         tableHTML += `<td class="cell-empty">-</td>`;
                     } else {
                         const wins = subset.filter(d => d.result === 'win').length;
+                        const losses = subset.filter(d => d.result === 'loss').length;
+                        const draws = subset.filter(d => d.result === 'draw').length;
+                        
                         const winRate = (wins / totalMatches) * 100;
                         
                         let cssClass = 'cell-okay';
                         if (winRate >= 55) cssClass = 'cell-good';
                         if (winRate <= 45) cssClass = 'cell-bad';
 
+                        const recordDisplay = draws > 0 ? `${wins}W-${losses}L-${draws}D` : `${wins}W - ${losses}L`;
+
                         tableHTML += `<td class="${cssClass}">
                             <div class="text-lg">${Math.round(winRate)}%</div>
-                            <div class="text-xs font-normal opacity-75">${wins}W - ${totalMatches - wins}L</div>
+                            <div class="text-xs font-normal opacity-75">${recordDisplay}</div>
                         </td>`;
                     }
                 });
